@@ -83,113 +83,82 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Cliente</title>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons CSS -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
-    <!-- autoNumeric JS -->
-    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.5.4/dist/autoNumeric.min.js"></script>
-    <!-- jQuery Mask Plugin -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../CSS/edit.css">
 </head>
 
 <body>
     <div class="container mt-5">
-        <h2 class="text-center mb-4">Editar Cliente</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="inicio_vigencia"><i class="bi bi-calendar-day"></i> Início Vigência</label>
-                    <input type="date" class="form-control" id="inicio_vigencia" name="inicio_vigencia"
-                        value="<?php echo htmlspecialchars($row['inicio_vigencia']); ?>" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="apolice"><i class="bi bi-file-earmark-text"></i>Proposta</label>
-                    <input type="text" class="form-control" id="apolice" name="apolice"
-                        value="<?php echo htmlspecialchars($row['apolice']); ?>" required>
-                </div>
+        <div class="card shadow-lg">
+            <div class="card-header text-center bg-primary text-white">
+                <h2><i class="bi bi-person"></i> Editar Cliente</h2>
             </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="nome"><i class="bi bi-person"></i> Nome</label>
-                    <input type="text" class="form-control" id="nome" name="nome"
-                        value="<?php echo htmlspecialchars($row['nome']); ?>" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="cpf"><i class="bi bi-card-text"></i>CPF/CNPJ</label>
-                    <input type="text" class="form-control" id="cpf" name="cpf"
-                        value="<?php echo htmlspecialchars($row['cpf']); ?>" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="numero"><i class="bi bi-telephone"></i> Número</label>
-                    <input type="text" class="form-control" id="numero" name="numero"
-                        value="<?php echo htmlspecialchars($row['numero']); ?>" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="email"><i class="bi bi-envelope"></i> Email</label>
-                    <input type="email" class="form-control" id="email" name="email"
-                        value="<?php echo htmlspecialchars($row['email']); ?>" required>
-                </div>
-            </div>
-            <div class="form-row">
-            <div class="form-group col-md-6">
-                    <label for="premio_liquido"><i class="bi bi-currency-dollar"></i> Prêmio Líquido</label>
-                    <input type="text" class="form-control" id="premio_liquido" name="premio_liquido"
-                        value="<?php echo htmlspecialchars($row['premio_liquido']); ?>" required>
-                </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="inicio_vigencia" class="form-label"><i class="bi bi-calendar-day"></i> Início Vigência</label>
+                            <input type="date" class="form-control" id="inicio_vigencia" name="inicio_vigencia" value="<?php echo htmlspecialchars($row['inicio_vigencia']); ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="apolice" class="form-label"><i class="bi bi-file-earmark-text"></i> Proposta</label>
+                            <input type="text" class="form-control" id="apolice" name="apolice" value="<?php echo htmlspecialchars($row['apolice']); ?>" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nome" class="form-label"><i class="bi bi-person"></i> Nome</label>
+                            <input type="text" class="form-control" id="nome" name="nome" value="<?php echo htmlspecialchars($row['nome']); ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cpf" class="form-label"><i class="bi bi-card-text"></i> CPF/CNPJ</label>
+                            <input type="text" class="form-control" id="cpf" name="cpf" value="<?php echo htmlspecialchars($row['cpf']); ?>" required>
+                        </div>
+                    </div>
 
-                <div class="form-group col-md-6">
-                    <label for="comissao"><i class="bi bi-percent"></i> Comissão (%)</label>
-                    <input type="text" class="form-control" id="comissao" name="comissao"
-                        value="<?php echo htmlspecialchars($row['comissao']); ?>" required>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="observacoes">Observações</label>
-                <textarea id="observacoes" name="observacoes" class="form-control"
-                    rows="3"><?php echo htmlspecialchars($row['observacoes']); ?></textarea>
-            </div>
-            <div class="form-group">
-                <label for="status"><i class="bi bi-tags"></i> Status</label>
-                <select class="form-control" id="status" name="status" required>
-                    <option value="Aguardando Emissão" <?php if ($row['status'] == 'Aguardando Emissão')
-                        echo 'selected'; ?>>Aguardando Emissão</option>
-                    <option value="Emitida" <?php if ($row['status'] == 'Emitida')
-                        echo 'selected'; ?>>Emitida</option>
-                    <option value="Pendencia na vistoria" <?php if ($row['status'] == 'Pendencia na vistoria')
-                        echo 'selected'; ?>>Pendência na vistoria</option>
-                    <option value="Processo de Vistoria" <?php if ($row['status'] == 'Processo de Vistoria')
-                        echo 'selected'; ?>>Processo de Vistoria</option>
-                    <option value="Pendencia de Proposta" <?php if ($row['status'] == 'Pendencia de Proposta')
-                        echo 'selected'; ?>>Pendência de Proposta</option>
-                    <option value="Efetivado" <?php if ($row['status'] == 'Efetivado')
-                        echo 'selected'; ?>>Efetivado
-                    </option>
-                    <option value="Cancelado" <?php if ($row['status'] == 'Cancelado')
-                        echo 'selected'; ?>>Cancelado
-                    </option>
-                    <option value="Recusa por vistoria" <?php if ($row['status'] == 'Recusa por vistoria')
-                        echo 'selected'; ?>>Recusa por vistoria</option>
-                </select>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="numero" class="form-label"><i class="bi bi-telephone"></i> Número</label>
+                            <input type="text" class="form-control" id="numero" name="numero" value="<?php echo htmlspecialchars($row['numero']); ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($row['email']); ?>" required>
+                        </div>
+                    </div>
 
-            </div>
-            <div class="form-group">
-    <label for="pdf"><i class="bi bi-file-earmark-arrow-up"></i> Proposta PDF</label>
-    <input type="file" class="form-control-file" id="pdf" name="pdf">
-    <?php if (!empty($row['pdf_path'])): ?>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="premio_liquido" class="form-label"><i class="bi bi-currency-dollar"></i> Prêmio Líquido</label>
+                            <input type="text" class="form-control" id="premio_liquido" name="premio_liquido" value="<?php echo htmlspecialchars($row['premio_liquido']); ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="comissao" class="form-label"><i class="bi bi-percent"></i> Comissão (%)</label>
+                            <input type="text" class="form-control" id="comissao" name="comissao" value="<?php echo htmlspecialchars($row['comissao']); ?>" required>
+                        </div>
+                    </div>
 
-    <?php endif; ?>
-</div>
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label"><i class="bi bi-sticky"></i> Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="4"><?php echo htmlspecialchars($row['observacoes']); ?></textarea>
+                    </div>
 
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="seguradora"><i class="bi bi-building"></i> Seguradora</label>
-                    <select class="form-control" id="seguradora" name="seguradora" required>
-                        <option value="Aliro Seguro" <?php if ($row['seguradora'] == 'Aliro Seguro')
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label"><i class="bi bi-tags"></i> Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="Aguardando Emissão" <?php if ($row['status'] == 'Aguardando Emissão') echo 'selected'; ?>>Aguardando Emissão</option>
+                                <option value="Emitida" <?php if ($row['status'] == 'Emitida') echo 'selected'; ?>>Emitida</option>
+                                <option value="Cancelado" <?php if ($row['status'] == 'Cancelado') echo 'selected'; ?>>Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="seguradora" class="form-label"><i class="bi bi-building"></i> Seguradora</label>
+                            <select class="form-select" id="seguradora" name="seguradora" required>
+                            <option value="Aliro Seguro" <?php if ($row['seguradora'] == 'Aliro Seguro')
                             echo 'selected'; ?>>
                             Aliro Seguro</option>
                         <option value="Allianz Seguros" <?php if ($row['seguradora'] == 'Allianz Seguros')
@@ -256,16 +225,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </option>
                         <option value="ItauSeguros" <?php if ($row['seguradora'] == 'ItauSeguros') echo 'selected'; ?>>ItauSeguros</option>
                         <option value="Unimed Seguros" <?php if ($row['seguradora'] == 'Unimed Seguros')
-                            echo 'selected'; ?>>Unimed Seguros</option>
-                    </select>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="tipo_seguro"><i class="bi bi-shield"></i> Tipo de Seguro</label>
-                    <select class="form-control" id="tipo_seguro" name="tipo_seguro" required>
-                        <option value="Seguro Auto" <?php if ($row['tipo_seguro'] == 'Seguro Auto')
-                            echo 'selected'; ?>>
-                            Seguro Auto</option>
-                        <option value="Seguro Moto" <?php if ($row['tipo_seguro'] == 'Seguro Moto')
+                            echo 'selected'; ?>>Unimed Seguros
+                        </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tipo_seguro" class="form-label"><i class="bi bi-shield"></i> Tipo de Seguro</label>
+                        <select class="form-select" id="tipo_seguro" name="tipo_seguro" required>
+                            <option value="Seguro Auto" <?php if ($row['tipo_seguro'] == 'Seguro Auto') echo 'selected'; ?>>Seguro Auto</option>
+                            <option value="Seguro Viagem" <?php if ($row['tipo_seguro'] == 'Seguro Viagem') echo 'selected'; ?>>Seguro Viagem</option>
+                            <option value="Seguro Franquia Sura" <?php if ($row['tipo_seguro'] == 'Seguro Franquia Sura') echo 'selected'; ?>>Seguro Franquia Sura</option>
+                            <option value="Seguro Moto" <?php if ($row['tipo_seguro'] == 'Seguro Moto')
                             echo 'selected'; ?>>
                             Seguro Moto</option>
                         <option value="Seguro de Vida" <?php if ($row['tipo_seguro'] == 'Seguro de Vida')
@@ -291,30 +263,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             echo 'selected'; ?>>Acidenes Pessoais</option>
                         <option value="Seguro Residencial" <?php if ($row['seguradora'] == 'Seguro Residencial')
                             echo 'selected'; ?>>Seguro Residencial</option>
-                    </select>
-                </div>
+                            <!-- Continue com as demais opções de seguro -->
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="pdf" class="form-label"><i class="bi bi-file-earmark-arrow-up"></i> Proposta PDF</label>
+                        <input type="file" class="form-control" id="pdf" name="pdf">
+                        <?php if (!empty($row['pdf_path'])): ?>
+                            <small class="form-text text-muted">Arquivo atual: <?php echo htmlspecialchars($row['pdf_path']); ?></small>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Atualizar</button>
+                    </div>
+                </form>
             </div>
-            <div class="text-center mt-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-pencil"></i> Atualizar
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 
-    <!-- jQuery, Popper.js, Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- autoNumeric JS -->
-    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.5.4/dist/autoNumeric.min.js"></script>
-    <!-- jQuery Mask Plugin -->
+    <!-- Bootstrap e jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-    <script src="../JS/verificar_proposta.js"></script>
-    <!-- Custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.5.4/dist/autoNumeric.min.js"></script>
+
     <script>
         $(document).ready(function(){
-            // Inicializar autoNumeric no campo de Prêmio Líquido
+            // Formatação AutoNumeric para Prêmio Líquido
             new AutoNumeric('#premio_liquido', {
                 digitGroupSeparator: '.',
                 decimalCharacter: ',',
@@ -323,11 +300,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 currencySymbolPlacement: 'p',
                 unformatOnSubmit: true
             });
-
             // Máscara para Número de Celular
             $('#numero').mask('(00) 00000-0000');
-
-            // Máscara para Comissão (percentual)
+            // Máscara para Comissão
             $('#comissao').mask('##0,00%', {reverse: true});
         });
     </script>

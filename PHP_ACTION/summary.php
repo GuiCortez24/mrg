@@ -12,7 +12,7 @@ if ($month) {
             GROUP BY seguradora, tipo_seguro";
     $result = $conn->query($sql);
 
-    // Consulta para contar as apólices canceladas e efetivadas
+    // Consulta para contar as apólices canceladas e emitidas
     $status_sql = "SELECT status, COUNT(*) as total 
                    FROM clientes 
                    WHERE MONTH(inicio_vigencia) = '$month' AND YEAR(inicio_vigencia) = '$year' 
@@ -25,7 +25,7 @@ if ($month) {
         $seguradoras = [];
         $tipos_seguro = [];
         $canceladas = 0;
-        $efetivadas = 0;
+        $emitidas = 0;
 
         echo '<table class="table table-bordered">';
         echo '<thead>';
@@ -57,12 +57,12 @@ if ($month) {
         echo '</tbody>';
         echo '</table>';
 
-        // Contar as apólices canceladas e efetivadas
+        // Contar as apólices canceladas e emitidas
         while ($status_row = $status_result->fetch_assoc()) {
             if ($status_row['status'] == 'Cancelado') {
                 $canceladas = $status_row['total'];
-            } elseif ($status_row['status'] == 'Efetivado') {
-                $efetivadas = $status_row['total'];
+            } elseif ($status_row['status'] == 'Emitida') {
+                $emitidas = $status_row['total'];
             }
         }
 
@@ -71,7 +71,7 @@ if ($month) {
         echo '<p>Total de Seguradoras: ' . count($seguradoras) . '</p>';
         echo '<p>Total de Tipos de Seguro: ' . count($tipos_seguro) . '</p>';
         echo '<p>Total de Apólices Canceladas: ' . $canceladas . '</p>';
-        echo '<p>Total de Apólices Efetivadas: ' . $efetivadas . '</p>';
+        echo '<p>Total de Apólices Emitidas: ' . $emitidas . '</p>';
     } else {
         echo '<p>Nenhum cliente encontrado para este mês.</p>';
     }
