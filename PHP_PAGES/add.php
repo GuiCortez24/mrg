@@ -155,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="SulAmerica">SulAmerica</option>
                                 <option value="VitalCard">VitalCard</option>
                                 <option value="Bradesco">Bradesco</option>
+                                <option value="Bradesco Agência">Bradesco Agência</option>
                                 <option value="ItauSeguros">ItauSeguros</option>
                             </select>
                         </div>
@@ -199,21 +200,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.5.4/dist/autoNumeric.min.js"></script>
     <script src="../JS/verificar_proposta.js"></script>
     <script>
-        $(document).ready(function(){
-            // Inicializar autoNumeric no campo de Prêmio Líquido
-            new AutoNumeric('#premio_liquido', {
-                digitGroupSeparator: '.',
-                decimalCharacter: ',',
-                decimalPlaces: 2,
-                currencySymbol: 'R$ ',
-                currencySymbolPlacement: 'p',
-                unformatOnSubmit: true
-            });
-
-            // Máscaras para celular e comissão
-            $('#numero').mask('(00) 00000-0000');
-            $('#comissao').mask('##0,00%', {reverse: true});
+    $(document).ready(function() {
+        // Inicializar autoNumeric no campo de Prêmio Líquido
+        new AutoNumeric('#premio_liquido', {
+            digitGroupSeparator: '.',
+            decimalCharacter: ',',
+            decimalPlaces: 2,
+            currencySymbol: 'R$ ',
+            currencySymbolPlacement: 'p',
+            unformatOnSubmit: true
         });
-    </script>
+
+        // Máscaras para celular e comissão
+        $('#numero').mask('(00) 00000-0000');
+        $('#comissao').mask('##0,00%', {reverse: true});
+    });
+</script>
+
 </body>
 </html>
