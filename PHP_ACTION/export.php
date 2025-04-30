@@ -30,9 +30,11 @@ if ($month) {
 
 $result = $conn->query($sql);
 
+// Início da tabela
 echo '<table border="1">';
 echo '<tr>';
 echo '<th>Início Vigência</th>';
+echo '<th>Final Vigência</th>'; // Adicionado
 echo '<th>Apólice</th>';
 echo '<th>Nome</th>';
 echo '<th>CPF</th>';
@@ -42,27 +44,31 @@ echo '<th>Prêmio Líquido</th>';
 echo '<th>Comissão (%)</th>';
 echo '<th>Comissão Calculada</th>';
 echo '<th>Status</th>';
-echo '<th>Seguradora</th>'; // Adicionando a coluna Seguradora
+echo '<th>Seguradora</th>';
 echo '<th>Arquivo PDF</th>';
 echo '</tr>';
 
+// Linhas da tabela
 while ($row = $result->fetch_assoc()) {
+    $final_vigencia_formatado = !empty($row['final_vigencia']) ? date('d/m/Y', strtotime($row['final_vigencia'])) : 'N/A';
+
     echo '<tr>';
-    echo '<td>' . $row['inicio_vigencia'] . '</td>';
+    echo '<td>' . date('d/m/Y', strtotime($row['inicio_vigencia'])) . '</td>';
+    echo '<td>' . $final_vigencia_formatado . '</td>'; // Adicionado
     echo '<td>' . $row['apolice'] . '</td>';
     echo '<td>' . $row['nome'] . '</td>';
     echo '<td>' . $row['cpf'] . '</td>';
     echo '<td>' . $row['numero'] . '</td>';
     echo '<td>' . $row['email'] . '</td>';
-    echo '<td>' . $row['premio_liquido'] . '</td>';
-    echo '<td>' . $row['comissao'] . '</td>';
-    echo '<td>' . $row['premio_liquido'] * ($row['comissao'] / 100) . '</td>';
+    echo '<td>' . number_format($row['premio_liquido'], 2, ',', '.') . '</td>';
+    echo '<td>' . $row['comissao'] . '%</td>';
+    echo '<td>' . number_format($row['premio_liquido'] * ($row['comissao'] / 100), 2, ',', '.') . '</td>';
     echo '<td>' . $row['status'] . '</td>';
-    echo '<td>' . $row['seguradora'] . '</td>'; // Exibindo a seguradora
+    echo '<td>' . $row['seguradora'] . '</td>';
     echo '<td>' . $row['pdf_path'] . '</td>';
     echo '</tr>';
 }
-echo '</table>';
 
+echo '</table>';
 $conn->close();
 ?>

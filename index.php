@@ -331,18 +331,40 @@ function formatDate($date)
             <?php while ($row = $result->fetch_assoc()): ?>
                 <?php
                     // Define o estilo do cartão com base no status
-                    $cardClass = '';
-                    switch ($row['status']) {
-                        case 'Emitida':
-                            $cardClass = 'bg-light border border-success text-success';
-                            break;
-                        case 'Cancelado':
-                            $cardClass = 'bg-light border border-danger text-danger';
-                            break;
-                        default:
-                            $cardClass = 'bg-light border border-primary text-primary';
-                            break;
-                    }
+                    $inicioVigencia = new DateTime($row['inicio_vigencia']);
+$fimVigencia    = new DateTime($row['final_vigencia']);
+$intervalo      = $inicioVigencia->diff($fimVigencia);
+
+$vigenciaMenorQueUmAno = $intervalo->y < 1;
+
+if ($vigenciaMenorQueUmAno) {
+    // Borda amarela, fundo claro e texto conforme status
+    switch ($row['status']) {
+        case 'Emitida':
+            $cardClass = 'bg-light border border-warning text-success';
+            break;
+        case 'Cancelado':
+            $cardClass = 'bg-light border border-warning text-danger';
+            break;
+        default:
+            $cardClass = 'bg-light border border-warning text-primary';
+            break;
+    }
+} else {
+    // Comportamento original
+    switch ($row['status']) {
+        case 'Emitida':
+            $cardClass = 'bg-light border border-success text-success';
+            break;
+        case 'Cancelado':
+            $cardClass = 'bg-light border border-danger text-danger';
+            break;
+        default:
+            $cardClass = 'bg-light border border-primary text-primary';
+            break;
+    }
+}
+
                 ?>
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 <?php echo $cardClass; ?>">
@@ -351,6 +373,7 @@ function formatDate($date)
                             <p class="card-text">
                                 <strong><i class="bi bi-building"></i> Seguradora:</strong> <?php echo htmlspecialchars($row['seguradora']); ?><br>
                                 <strong><i class="bi bi-calendar-date"></i> Vigência:</strong> <?php echo formatDate($row['inicio_vigencia']); ?><br>
+                                <strong><i class="bi bi-calendar-date"></i> Final da Vigência:</strong> <?php echo formatDate($row['final_vigencia']); ?><br>
                                 <strong><i class="bi bi-file-earmark"></i> Proposta:</strong> <?php echo htmlspecialchars($row['apolice']); ?>
                             </p>
                             <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-<?php echo $row['id']; ?>">
@@ -377,6 +400,7 @@ function formatDate($date)
                                 <p><strong><i class="bi bi-percent"></i> Comissão (%):</strong> <?php echo htmlspecialchars($row['comissao']); ?></p>
                                 <p><strong><i class="bi bi-calculator"></i> Comissão Calculada:</strong> <?php echo htmlspecialchars($row['premio_liquido'] * ($row['comissao'] / 100)); ?></p>
                                 <p><strong><i class="bi bi-tachometer"></i> Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
+                                <p><strong><i class="bi bi-calendar-range"></i> Final Vigência:</strong> <?php echo formatDate($row['final_vigencia']); ?></p>
                                 <?php if ($row['pdf_path']): ?>
                                     <p><a href="uploads/<?php echo htmlspecialchars($row['pdf_path']); ?>" target="_blank" class="text-decoration-none text-primary"><i class="bi bi-file-earmark-pdf"></i> Visualizar PDF</a></p>
                                 <?php endif; ?>

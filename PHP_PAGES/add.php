@@ -4,6 +4,7 @@ session_start(); // Inicie a sessão
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $inicio_vigencia = $_POST['inicio_vigencia'];
+    $final_vigencia = $_POST['final_vigencia'];
     $apolice = $_POST['apolice'];
     $nome = $_POST['nome'];
     $cpf = $_POST['cpf'];
@@ -40,9 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         move_uploaded_file($pdf_tmp, $pdf_path);
     }
 
-    $stmt = $conn->prepare("INSERT INTO clientes (inicio_vigencia, apolice, nome, cpf, numero, email, premio_liquido, comissao, status, seguradora, tipo_seguro, pdf_path, observacoes) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param('sssssssssssss', $inicio_vigencia, $apolice, $nome, $cpf, $numero, $email, $premio_liquido, $comissao, $status, $seguradora, $tipo_seguro, $pdf_path, $observacoes);
+    $stmt = $conn->prepare("INSERT INTO clientes (inicio_vigencia, final_vigencia, apolice, nome, cpf, numero, email, premio_liquido, comissao, status, seguradora, tipo_seguro, pdf_path, observacoes) 
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param('ssssssssssssss', $inicio_vigencia, $final_vigencia, $apolice, $nome, $cpf, $numero, $email, $premio_liquido, $comissao, $status, $seguradora, $tipo_seguro, $pdf_path, $observacoes);
+
 
     if ($stmt->execute()) {
         header('Location: ../index.php');
@@ -79,6 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label for="inicio_vigencia" class="form-label"><i class="bi bi-calendar-day"></i> Início Vigência</label>
                             <input type="date" class="form-control" id="inicio_vigencia" name="inicio_vigencia" required>
                         </div>
+                        <div class="col-md-6">
+    <label for="final_vigencia" class="form-label"><i class="bi bi-calendar-check"></i> Final Vigência</label>
+    <input type="date" class="form-control" id="final_vigencia" name="final_vigencia" required>
+</div>
                         <div class="col-md-6">
                             <label for="apolice" class="form-label"><i class="bi bi-file-earmark-text"></i> Proposta</label>
                             <input type="text" class="form-control" id="apolice" name="apolice" required>

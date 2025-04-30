@@ -11,6 +11,7 @@ $id = $_GET['id'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $inicio_vigencia = $_POST['inicio_vigencia'];
+    $final_vigencia = $_POST['final_vigencia'];
     $apolice = $_POST['apolice'];
     $nome = $_POST['nome'];
     $cpf = $_POST['cpf'];
@@ -54,11 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Atualize a instrução SQL para a atualização
     $stmt = $conn->prepare("UPDATE clientes 
-                            SET inicio_vigencia = ?, apolice = ?, nome = ?, cpf = ?, numero = ?, email = ?, premio_liquido = ?, comissao = ?, status = ?, seguradora = ?, tipo_seguro = ?, pdf_path = ?, observacoes = ?
+                            SET inicio_vigencia = ?,final_vigencia = ?, apolice = ?, nome = ?, cpf = ?, numero = ?, email = ?, premio_liquido = ?, comissao = ?, status = ?, seguradora = ?, tipo_seguro = ?, pdf_path = ?, observacoes = ?
                             WHERE id = ?");
 
     // Bind os parâmetros
-    $stmt->bind_param('sssssssssssssi', $inicio_vigencia, $apolice, $nome, $cpf, $numero, $email, $premio_liquido, $comissao, $status, $seguradora, $tipo_seguro, $pdf_path, $observacoes, $id);
+    $stmt->bind_param('ssssssssssssssi', $inicio_vigencia, $final_vigencia, $apolice, $nome, $cpf, $numero, $email, $premio_liquido, $comissao, $status, $seguradora, $tipo_seguro, $pdf_path, $observacoes, $id);
+
 
     if ($stmt->execute()) {
         header('Location: ../index.php');
@@ -102,6 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label for="inicio_vigencia" class="form-label"><i class="bi bi-calendar-day"></i> Início Vigência</label>
                             <input type="date" class="form-control" id="inicio_vigencia" name="inicio_vigencia" value="<?php echo htmlspecialchars($row['inicio_vigencia']); ?>" required>
                         </div>
+                        <div class="col-md-6">
+    <label for="final_vigencia" class="form-label"><i class="bi bi-calendar-check"></i> Final Vigência</label>
+    <input type="date" class="form-control" id="final_vigencia" name="final_vigencia" value="<?php echo htmlspecialchars($row['final_vigencia']); ?>" required>
+</div>
                         <div class="col-md-6">
                             <label for="apolice" class="form-label"><i class="bi bi-file-earmark-text"></i> Proposta</label>
                             <input type="text" class="form-control" id="apolice" name="apolice" value="<?php echo htmlspecialchars($row['apolice']); ?>" required>
