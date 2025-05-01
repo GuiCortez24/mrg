@@ -123,7 +123,16 @@ $total_paginas = ceil($total_registros / $registros_por_pagina);
 // Função para formatar a data
 function formatDate($date)
 {
-    return date('d/m/Y', strtotime($date));
+    if (empty($date) || $date === '0000-00-00') {
+        return ''; // ou return 'Não informado';
+    }
+
+    $timestamp = strtotime($date);
+    if ($timestamp === false) {
+        return '';
+    }
+
+    return date('d/m/Y', $timestamp);
 }
 ?>
 

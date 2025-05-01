@@ -6,27 +6,35 @@ $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
 $searchName = isset($_GET['name']) ? $_GET['name'] : '';
 $searchCpf = isset($_GET['cpf']) ? $_GET['cpf'] : '';
 $searchStatus = isset($_GET['status']) ? $_GET['status'] : '';
+$searchSeguradora = isset($_GET['seguradora']) ? $_GET['seguradora'] : '';
+$searchTipoSeguro = isset($_GET['tipo_seguro']) ? $_GET['tipo_seguro'] : '';
 
-// Atualize a consulta SQL para incluir a busca
-$sql = "SELECT * FROM clientes WHERE MONTH(inicio_vigencia) = '$month' AND YEAR(inicio_vigencia) = '$year'";
+// Monta a query SQL com filtros
+$sql = "SELECT * FROM clientes WHERE MONTH(inicio_vigencia) = '" . $conn->real_escape_string($month) . "' AND YEAR(inicio_vigencia) = '" . $conn->real_escape_string($year) . "'";
 
 if ($searchName) {
-    $searchName = $conn->real_escape_string($searchName);
-    $sql .= " AND nome LIKE '%$searchName%'";
+    $sql .= " AND nome LIKE '%" . $conn->real_escape_string($searchName) . "%'";
 }
 
 if ($searchCpf) {
-    $searchCpf = $conn->real_escape_string($searchCpf);
-    $sql .= " AND cpf LIKE '%$searchCpf%'";
+    $sql .= " AND cpf LIKE '%" . $conn->real_escape_string($searchCpf) . "%'";
 }
 
 if ($searchStatus && $searchStatus !== 'Todos') {
-    $searchStatus = $conn->real_escape_string($searchStatus);
-    $sql .= " AND status = '$searchStatus'";
+    $sql .= " AND status = '" . $conn->real_escape_string($searchStatus) . "'";
+}
+
+if ($searchSeguradora && $searchSeguradora !== 'Todas') {
+    $sql .= " AND seguradora = '" . $conn->real_escape_string($searchSeguradora) . "'";
+}
+
+if ($searchTipoSeguro && $searchTipoSeguro !== 'Todos') {
+    $sql .= " AND tipo_seguro = '" . $conn->real_escape_string($searchTipoSeguro) . "'";
 }
 
 $result = $conn->query($sql);
 
+// Arrays de apoio
 $months = [
     '01' => 'Janeiro',
     '02' => 'Fevereiro',
@@ -48,40 +56,6 @@ $statuses = [
     'Emitida',
     'Cancelado',
 ];
-
-$searchSeguradora = isset($_GET['seguradora']) ? $_GET['seguradora'] : '';
-$searchTipoSeguro = isset($_GET['tipo_seguro']) ? $_GET['tipo_seguro'] : '';
-
-$sql = "SELECT * FROM clientes WHERE MONTH(inicio_vigencia) = '$month' AND YEAR(inicio_vigencia) = '$year'";
-
-if ($searchName) {
-    $searchName = $conn->real_escape_string($searchName);
-    $sql .= " AND nome LIKE '%$searchName%'";
-}
-
-if ($searchCpf) {
-    $searchCpf = $conn->real_escape_string($searchCpf);
-    $sql .= " AND cpf LIKE '%$searchCpf%'";
-}
-
-if ($searchStatus && $searchStatus !== 'Todos') {
-    $searchStatus = $conn->real_escape_string($searchStatus);
-    $sql .= " AND status = '$searchStatus'";
-}
-
-if ($searchSeguradora && $searchSeguradora !== 'Todas') {
-    $searchSeguradora = $conn->real_escape_string($searchSeguradora);
-    $sql .= " AND seguradora = '$searchSeguradora'";
-}
-
-if ($searchTipoSeguro && $searchTipoSeguro !== 'Todos') {
-    $searchTipoSeguro = $conn->real_escape_string($searchTipoSeguro);
-    $sql .= " AND tipo_seguro = '$searchTipoSeguro'";
-}
-
-$result = $conn->query($sql);
-
-
 
 $seguradoras = [
     'Todas',
@@ -112,7 +86,6 @@ $seguradoras = [
     'Bradesco'
 ];
 
-
 $tiposSeguro = [
     'Todos',
     'Seguro Auto',
@@ -128,8 +101,8 @@ $tiposSeguro = [
     'Seguro Frota',
     'Seguro Agronegócio'
 ];
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -246,8 +219,9 @@ $tiposSeguro = [
             $inicio_vigencia = new DateTime($row['inicio_vigencia']);
             $inicio_vigencia_formatado = $inicio_vigencia->format('d/m/Y');
 
-            $final_vigencia = new DateTime($row['final_vigencia']);
-            $final_vigencia_formatado = $final_vigencia->format('d/m/Y');
+            $final_vigencia_formatado = $row['final_vigencia']
+            ? (new DateTime($row['final_vigencia']))->format('d/m/Y')
+            : '---';        
 
             $comissao_calculada = $row['premio_liquido'] * ($row['comissao'] / 100);
 
