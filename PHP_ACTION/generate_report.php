@@ -1,53 +1,68 @@
 <?php
-// Iniciar buffer de saída para evitar que qualquer saída interfira na geração do PDF
 ob_start();
 
 require_once('../db.php');
 require_once('vendor/tecnickcom/tcpdf/tcpdf.php');
 
-// Verificar se os parâmetros foram passados
+// Verificar parâmetros
 if (!isset($_GET['reportType']) || !isset($_GET['startDate']) || !isset($_GET['endDate'])) {
     die("Todos os parâmetros são necessários.");
 }
 
 $reportType = $_GET['reportType'];
-$startDate = date('d/m/Y', strtotime($_GET['startDate']));
-$endDate = date('d/m/Y', strtotime($_GET['endDate']));
+$startDateParam = $_GET['startDate'];
+$endDateParam = $_GET['endDate'];
 
-// Consulta com inclusão de final_vigencia
+$startDate = date('d/m/Y', strtotime($startDateParam));
+$endDate = date('d/m/Y', strtotime($endDateParam));
+
+// Consulta com filtro correto
 $stmt = $conn->prepare("SELECT nome, seguradora, inicio_vigencia, final_vigencia, numero, email, tipo_seguro, premio_liquido 
                         FROM clientes 
-                        WHERE inicio_vigencia BETWEEN ? AND ? 
+                        WHERE 
+                            (
+                                (inicio_vigencia BETWEEN ? AND ?)
+                                OR (final_vigencia BETWEEN ? AND ?)
+                            )
+                            AND (final_vigencia IS NULL OR final_vigencia != '0000-00-00')
+                            AND status != 'Cancelado'
                         ORDER BY inicio_vigencia ASC, seguradora ASC");
-$stmt->bind_param("ss", $_GET['startDate'], $_GET['endDate']);
+$stmt->bind_param("ssss", $startDateParam, $endDateParam, $startDateParam, $endDateParam);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Calcular totais
 $totalPremioLiquido = 0;
-$totalClientes = $result->num_rows;
+$totalClientes = 0;
 
 // Criar o PDF
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 $pdf->SetAutoPageBreak(true, 10);
-$pdf->SetMargins(10, 10, 10);
-$pdf->AddPage('P'); // vertical
-$pdf->SetFont('helvetica', 'B', 16);
-$pdf->Cell(0, 10, "Relatório de $reportType - Período: $startDate a $endDate", 0, 1, 'C');
-$pdf->Ln(10);
-$pdf->SetFont('helvetica', '', 12);
+$pdf->SetMargins(10, 20, 10);
+$pdf->AddPage('P');
 
-// Cartões por cliente
+$pdf->SetFont('helvetica', 'B', 14);
+$pdf->Cell(0, 10, "MRG Seguros - Relatório de $reportType", 0, 1, 'C');
+$pdf->SetFont('helvetica', '', 11);
+$pdf->Cell(0, 5, "Período: $startDate a $endDate", 0, 1, 'C');
+$pdf->Ln(10);
+
+// Estilo modal por cliente
+$pdf->SetFont('helvetica', '', 11);
+
 while ($row = $result->fetch_assoc()) {
+    $totalClientes++;
     $totalPremioLiquido += $row['premio_liquido'];
 
     $inicioVigencia = date('d/m/Y', strtotime($row['inicio_vigencia']));
-    $finalVigencia = date('d/m/Y', strtotime($row['final_vigencia']));
+    $finalVigencia = (!empty($row['final_vigencia']) && $row['final_vigencia'] !== '0000-00-00')
+        ? date('d/m/Y', strtotime($row['final_vigencia']))
+        : 'Não informado';
 
     $pdf->SetFont('helvetica', 'B', 12);
-    $pdf->Cell(0, 8, "Cliente: " . $row['nome'], 0, 1, 'L');
+    $pdf->Cell(0, 8, "Cliente: " . strtoupper($row['nome']), 0, 1, 'L');
+
     $pdf->SetFont('helvetica', '', 11);
-    $pdf->MultiCell(0, 6, 
+    $pdf->MultiCell(0, 6,
         "Seguradora: " . $row['seguradora'] . "\n" .
         "Início Vigência: " . $inicioVigencia . "\n" .
         "Final Vigência: " . $finalVigencia . "\n" .
@@ -57,21 +72,21 @@ while ($row = $result->fetch_assoc()) {
         "Valor Pago: R$ " . number_format($row['premio_liquido'], 2, ',', '.'),
         0, 'L', false
     );
-    $pdf->Ln(5);
+
+    $pdf->Ln(5); // espaço entre blocos
 }
 
-// Resumo final
+// Resumo
 $pdf->Ln(10);
-$pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 10, "Resumo da Produção do Mês", 0, 1, 'C');
-$pdf->SetFont('helvetica', '', 12);
-$pdf->MultiCell(0, 10, 
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 8, "Resumo da Produção", 0, 1, 'C');
+$pdf->SetFont('helvetica', '', 11);
+$pdf->MultiCell(0, 8,
     "Total de Clientes: " . $totalClientes . "\n" .
     "Total do Prêmio Líquido: R$ " . number_format($totalPremioLiquido, 2, ',', '.'),
     0, 'L', false
 );
 
-// Finaliza buffer e gera PDF
 ob_end_clean();
 $pdf->Output("Relatorio_{$reportType}_{$startDate}_a_{$endDate}.pdf", 'D');
 exit;

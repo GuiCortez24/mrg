@@ -17,9 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cpf = $_POST['cpf'];
     $numero = $_POST['numero'];
     $email = $_POST['email'];
-    $premio_liquido = $_POST['premio_liquido'];
-    $comissao = $_POST['comissao'];
     $status = $_POST['status'];
+    if ($status === 'Cancelado') {
+        $premio_liquido = '0.00';
+        $comissao = '0.00';
+    } else {
+        $premio_liquido = $_POST['premio_liquido'];
+        $comissao = $_POST['comissao'];
+    }
     $observacoes = $_POST['observacoes'];
     $seguradora = isset($_POST['seguradora']) ? $_POST['seguradora'] : ''; // Valor padrão
     $tipo_seguro = isset($_POST['tipo_seguro']) ? $_POST['tipo_seguro'] : ''; // Valor padrão
@@ -311,6 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $('#numero').mask('(00) 00000-0000');
             // Máscara para Comissão
             $('#comissao').mask('##0,00%', {reverse: true});
+            
         });
     </script>
 </body>
