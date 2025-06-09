@@ -17,7 +17,7 @@ $startDate = date('d/m/Y', strtotime($startDateParam));
 $endDate = date('d/m/Y', strtotime($endDateParam));
 
 // Consulta com filtro correto
-$stmt = $conn->prepare("SELECT nome, seguradora, inicio_vigencia, final_vigencia, numero, email, tipo_seguro, premio_liquido 
+$stmt = $conn->prepare("SELECT nome, seguradora, inicio_vigencia, final_vigencia, numero, email, tipo_seguro, premio_liquido, status 
                         FROM clientes 
                         WHERE 
                             (
@@ -69,6 +69,7 @@ while ($row = $result->fetch_assoc()) {
         "Telefone: " . $row['numero'] . "\n" .
         "Email: " . $row['email'] . "\n" .
         "Tipo de Seguro: " . $row['tipo_seguro'] . "\n" .
+        "Status: " . $row['status'] . "\n" .
         "Valor Pago: R$ " . number_format($row['premio_liquido'], 2, ',', '.'),
         0, 'L', false
     );

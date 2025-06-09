@@ -5,45 +5,53 @@ require_once('vendor/tecnickcom/tcpdf/tcpdf.php');
 $month = isset($_GET['month']) ? $_GET['month'] : date('m');
 $year = isset($_GET['year']) ? $_GET['year'] : date('Y');
 
-// Consulta com final_vigencia incluída
-$sql = "SELECT nome, seguradora, tipo_seguro, final_vigencia 
+// Consulta com os novos campos
+$sql = "SELECT nome, seguradora, tipo_seguro, final_vigencia, status, premio_liquido, comissao 
         FROM clientes 
-        WHERE MONTH(inicio_vigencia) = '$month' AND YEAR(inicio_vigencia) = '$year'";
-$result = $conn->query($sql);
+        WHERE MONTH(inicio_vigencia) = ? AND YEAR(inicio_vigencia) = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $month, $year);
+$stmt->execute();
+$result = $stmt->get_result();
 
 // Inicia o PDF
 $pdf = new TCPDF();
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor('Seu Nome');
+$pdf->SetAuthor('Relatório MRG');
 $pdf->SetTitle('Relatório de Clientes');
 $pdf->SetSubject('Clientes - ' . date('F Y', strtotime("$year-$month-01")));
 
 $pdf->SetMargins(10, 10, 10);
 $pdf->AddPage();
-$pdf->SetFont('helvetica', 'B', 12);
+$pdf->SetFont('helvetica', 'B', 14);
 
 // Cabeçalho
 $pdf->Cell(0, 10, 'Relatório de Clientes - ' . date('F Y', strtotime("$year-$month-01")), 0, 1, 'C');
-$pdf->Ln(10);
+$pdf->Ln(5);
 
-// Cabeçalho da tabela
-$pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(50, 10, 'Nome', 1, 0, 'C');
-$pdf->Cell(50, 10, 'Seguradora', 1, 0, 'C');
-$pdf->Cell(50, 10, 'Tipo de Seguro', 1, 0, 'C');
-$pdf->Cell(40, 10, 'Final Vigência', 1, 1, 'C');
+// Estilo tipo “card”
+$pdf->SetFont('helvetica', '', 11);
 
-// Dados
-$pdf->SetFont('helvetica', '', 10);
 while ($row = $result->fetch_assoc()) {
-    $finalVigencia = !empty($row['final_vigencia']) ? date('d/m/Y', strtotime($row['final_vigencia'])) : 'N/A';
+    $finalVigencia = (!empty($row['final_vigencia']) && $row['final_vigencia'] !== '0000-00-00')
+        ? date('d/m/Y', strtotime($row['final_vigencia']))
+        : 'Não informado';
 
-    $pdf->MultiCell(50, 10, utf8_decode($row['nome']), 1, 'L', 0, 0);
-    $pdf->MultiCell(50, 10, utf8_decode($row['seguradora']), 1, 'L', 0, 0);
-    $pdf->MultiCell(50, 10, utf8_decode($row['tipo_seguro']), 1, 'L', 0, 0);
-    $pdf->MultiCell(40, 10, $finalVigencia, 1, 'C', 0, 1);
+    $valorPago = number_format($row['premio_liquido'], 2, ',', '.');
+    $comissao = number_format(($row['premio_liquido'] * $row['comissao']) / 100, 2, ',', '.');
+
+    $cardContent = "Nome: " . strtoupper($row['nome']) . "\n"
+        . "Seguradora: " . $row['seguradora'] . "\n"
+        . "Tipo de Seguro: " . $row['tipo_seguro'] . "\n"
+        . "Final da Vigência: " . $finalVigencia . "\n"
+        . "Status: " . $row['status'] . "\n"
+        . "Valor Pago: R$ " . $valorPago . "\n"
+        . "Comissão Gerada: R$ " . $comissao;
+
+    $pdf->MultiCell(0, 6, $cardContent, 1, 'L', false);
+    $pdf->Ln(5);
 }
 
-// Output do PDF
+// Saída do PDF
 $pdf->Output('Relatorio_Clientes_' . $month . '_' . $year . '.pdf', 'D');
 ?>
