@@ -1,87 +1,73 @@
-/* Estilos Globais */
+/* CSS/months.css */
+:root {
+    --primary-color: #198754; /* Usando o verde do nosso tema */
+    --primary-dark: #157347;
+    --accent-color: #ffc107; /* Amarelo para destaque */
+}
+
 body {
-    background: linear-gradient(to bottom, #aaf2c9, #ffffff); /* Gradiente de verde claro para branco */
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    font-family: Arial, sans-serif; /* Fonte padrão */
-    color: #333; /* Cor do texto padrão */
-    margin: 0;
-    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
 }
 
-/* Container */
-.container {
-    margin-top: 30px;
-    padding: 0 15px; /* Adiciona padding lateral para o container */
+/* Seção de Título (Hero) */
+.hero {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: #fff;
+    text-align: center;
+    padding: 3rem 1rem;
+    margin-bottom: 3rem;
+    border-radius: 0 0 1.5rem 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Cartões */
-.card {
-    border-radius: 15px; /* Bordas arredondadas */
-    border: 1px solid #e0e0e0; /* Borda suave */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    margin-bottom: 20px;
-    background-color: #ffffff; /* Fundo branco para o cartão */
+.hero h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
 }
 
-.card-header {
-    background-color: #007bff; /* Azul para o cabeçalho */
-    color: #ffffff; /* Cor do texto do cabeçalho */
-    font-size: 18px; /* Tamanho da fonte do cabeçalho */
-    border-bottom: 1px solid #0056b3; /* Borda inferior azul escuro */
-    padding: 15px; /* Padding interno do cabeçalho */
+/* Cards de Mês */
+.card.month-card {
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card-body {
-    padding: 15px; /* Padding interno do corpo do cartão */
+.card.month-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Botões */
-.btn-primary,
-.btn-info {
-    border-radius: 25px; /* Bordas arredondadas dos botões */
-    font-size: 16px; /* Tamanho da fonte dos botões */
-    padding: 10px 20px; /* Padding interno dos botões */
-    color: #ffffff; /* Cor do texto dos botões */
-    border: none; /* Remove a borda padrão */
-    cursor: pointer; /* Cursor de ponteiro */
-    transition: background-color 0.3s; /* Transição suave para hover */
+.card.month-card .card-header {
+    background-color: var(--primary-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
 }
 
-.btn-primary {
-    background-color: #007bff; /* Azul para o botão primário */
+.card.month-card .card-icon {
+    font-size: 1.5rem;
 }
 
-.btn-primary:hover {
-    background-color: #0056b3; /* Azul escuro ao passar o mouse */
+.btn-gradient {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+    color: #fff;
+    border: none;
+    transition: background 0.3s ease;
 }
 
-.btn-info {
-    background-color: #17a2b8; /* Azul para o botão de informação */
+.btn-gradient:hover {
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+    color: #fff;
 }
 
-.btn-info:hover {
-    background-color: #117a8b; /* Azul escuro ao passar o mouse */
-}
-
-/* Modais */
-.modal-content {
-    border-radius: 15px; /* Bordas arredondadas do conteúdo do modal */
-}
-
+/* Estilos dos Modais */
 .modal-header {
-    background-color: #007bff; /* Azul para o cabeçalho do modal */
-    color: #ffffff; /* Cor do texto do cabeçalho do modal */
-    border-bottom: none; /* Remove a borda inferior do cabeçalho do modal */
-    padding: 15px; /* Padding interno do cabeçalho do modal */
-}
-
-.modal-footer {
-    border-top: none; /* Remove a borda superior do rodapé do modal */
-    padding: 15px; /* Padding interno do rodapé do modal */
-}
-
-.modal-title {
-    font-size: 18px; /* Tamanho da fonte do título do modal */
+    background-color: var(--accent-color);
+    color: #333;
+    font-weight: 500;
 }
