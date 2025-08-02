@@ -18,9 +18,7 @@ $usuario_id = $_SESSION['user_id'];
 // Verifica se o formulário foi enviado via POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    // ================================================================
-    // NOVO: Lógica para DELETAR TODAS as notificações do usuário
-    // ================================================================
+    // Ação para DELETAR TODAS as notificações do usuário logado
     if (isset($_POST['delete_all'])) {
         // Exclui todas as notificações pertencentes AO USUÁRIO LOGADO
         $stmt = $conn->prepare("DELETE FROM notificacoes WHERE usuario_id = ?");
@@ -29,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->close();
     }
     
-    // Lógica para DELETAR UMA notificação específica
+    // Ação para DELETAR UMA notificação específica
     if (isset($_POST['delete_one']) && isset($_POST['notificacao_id'])) {
         $notificacao_id = $_POST['notificacao_id'];
 
