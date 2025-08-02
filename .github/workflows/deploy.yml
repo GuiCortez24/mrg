@@ -1,0 +1,42 @@
+# Nome do nosso fluxo de trabalho de automação
+name: Deploy via FTP para Locaweb
+
+# Gatilho: Este robô será acionado sempre que houver um 'push' (atualização)
+# na branch 'main' (ou 'master', dependendo do seu repositório).
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  # Nome do "trabalho" a ser executado
+  deploy:
+    name: Deploy
+    # Usa um ambiente virtual Linux para rodar os comandos
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clona o seu repositório para o ambiente virtual
+      - name: Checkout do código
+        uses: actions/checkout@v2
+
+      # 2. Executa a ação de deploy da Locaweb
+      - name: FTP Deploy Locaweb
+        uses: locaweb/ftp-deploy@1.0.0
+        with:
+          # Endereço do servidor FTP (ex: ftp.seusite.com.br)
+          host: ${{ secrets.HOST }} 
+          
+          # Usuário de acesso ao FTP
+          user: ${{ secrets.USER }}
+          
+          # Senha de acesso ao FTP (será configurada como um segredo)
+          password: ${{ secrets.PASS }}
+          
+          # Pasta local no repositório do GitHub que será enviada.
+          # Usamos "." para enviar o projeto inteiro.
+          localDir: "." 
+          
+          # IMPORTANTE: Pasta remota no servidor da Locaweb para onde os arquivos serão enviados.
+          # Geralmente é "/public_html/" ou "/www/". Verifique no seu painel da Locaweb.
+          remoteDir: "/public_html/"

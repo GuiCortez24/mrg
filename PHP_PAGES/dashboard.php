@@ -1,7 +1,7 @@
 <?php
 /**
  * Localização: /PHP_PAGES/dashboard.php
- * Painel principal do sistema com busca por "Item Segurado".
+ * Painel principal do sistema com busca por "Item Segurado" e lógica de data aprimorada.
  */
 
 $page_title = "Gerenciamento de Clientes";
@@ -31,7 +31,7 @@ $offset = ($pagina_atual - 1) * $registros_por_pagina;
 // Processa filtros de busca
 $search_nome = $_REQUEST['search_nome'] ?? '';
 $search_cpf = $_REQUEST['search_cpf'] ?? '';
-$search_item_segurado = $_REQUEST['search_item_segurado'] ?? ''; // NOVO
+$search_item_segurado = $_REQUEST['search_item_segurado'] ?? '';
 $search_item = $_REQUEST['search_item'] ?? '';
 $search_vigencia_de = $_REQUEST['search_vigencia_de'] ?? '';
 $search_vigencia_ate = $_REQUEST['search_vigencia_ate'] ?? '';
@@ -44,10 +44,19 @@ $sql_base = "FROM clientes WHERE 1=1";
 
 if (!empty($search_nome)) { $sql_conditions[] = "nome LIKE ?"; $params[] = "%$search_nome%"; $types .= "s"; }
 if (!empty($search_cpf)) { $sql_conditions[] = "cpf LIKE ?"; $params[] = "%$search_cpf%"; $types .= "s"; }
-if (!empty($search_item_segurado)) { $sql_conditions[] = "item_segurado LIKE ?"; $params[] = "%$search_item_segurado%"; $types .= "s"; } // NOVO
+if (!empty($search_item_segurado)) { $sql_conditions[] = "item_segurado LIKE ?"; $params[] = "%$search_item_segurado%"; $types .= "s"; }
 if (!empty($search_item)) { $sql_conditions[] = "item_identificacao LIKE ?"; $params[] = "%$search_item%"; $types .= "s"; }
-if (!empty($search_vigencia_de)) { $sql_conditions[] = "final_vigencia >= ?"; $params[] = $search_vigencia_de; $types .= "s"; }
-if (!empty($search_vigencia_ate)) { $sql_conditions[] = "final_vigencia <= ?"; $params[] = $search_vigencia_ate; $types .= "s"; }
+
+// Lógica de busca por data aprimorada
+if (!empty($search_vigencia_de) && !empty($search_vigencia_ate)) {
+    $calculated_end_date = "COALESCE(final_vigencia, DATE_ADD(inicio_vigencia, INTERVAL 1 YEAR))";
+    $sql_conditions[] = "((inicio_vigencia BETWEEN ? AND ?) OR ($calculated_end_date BETWEEN ? AND ?))";
+    $params[] = $search_vigencia_de;
+    $params[] = $search_vigencia_ate;
+    $params[] = $search_vigencia_de;
+    $params[] = $search_vigencia_ate;
+    $types .= "ssss";
+}
 
 if (!empty($sql_conditions)) {
     $sql_base .= " AND " . implode(" AND ", $sql_conditions);
@@ -63,7 +72,7 @@ $total_paginas = ceil($total_registros / $registros_por_pagina);
 $count_stmt->close();
 
 // Query para buscar os dados
-$data_sql = "SELECT * " . $sql_base . " ORDER BY final_vigencia ASC LIMIT ? OFFSET ?";
+$data_sql = "SELECT * " . $sql_base . " ORDER BY COALESCE(final_vigencia, DATE_ADD(inicio_vigencia, INTERVAL 1 YEAR)) ASC LIMIT ? OFFSET ?";
 $params[] = $registros_por_pagina;
 $params[] = $offset;
 $types .= "ii";

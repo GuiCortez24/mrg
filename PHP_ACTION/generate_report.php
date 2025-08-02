@@ -1,7 +1,8 @@
 <?php
 /**
  * Localização: /PHP_ACTION/generate_report.php
- * Gera um relatório de renovações, agora incluindo o "Item Segurado" e com layout ajustado.
+ * Gera um relatório de apólices cuja data de início OU fim de vigência
+ * estejam dentro do período selecionado.
  */
 
 require_once 'vendor/autoload.php';
@@ -20,21 +21,27 @@ $reportType = $_GET['reportType'];
 $startDateParam = $_GET['startDate'];
 $endDateParam = $_GET['endDate'];
 
-// 2. Buscar os dados do banco
+// 2. Buscar os dados do banco com a nova lógica
+// ================================================================
+// AJUSTE CRÍTICO: A consulta foi reescrita para buscar apólices
+// onde o INÍCIO OU o FIM da vigência estejam no período.
+// ================================================================
 $calculated_end_date = "COALESCE(final_vigencia, DATE_ADD(inicio_vigencia, INTERVAL 1 YEAR))";
 
-// ================================================================
-// ALTERADO: Adicionado o campo `item_segurado` na consulta
-// ================================================================
 $sql = "SELECT nome, seguradora, inicio_vigencia, final_vigencia, numero, email, tipo_seguro, premio_liquido, status, item_identificacao, item_segurado 
         FROM clientes 
         WHERE 
-            ($calculated_end_date BETWEEN ? AND ?)
+            (
+                (inicio_vigencia BETWEEN ? AND ?)
+                OR 
+                ($calculated_end_date BETWEEN ? AND ?)
+            )
             AND status != 'Cancelado'
-        ORDER BY $calculated_end_date ASC, seguradora ASC";
+        ORDER BY inicio_vigencia ASC, seguradora ASC";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ss", $startDateParam, $endDateParam);
+// Agora precisamos passar os parâmetros 4 vezes para cobrir as duas condições do OR
+$stmt->bind_param("ssss", $startDateParam, $endDateParam, $startDateParam, $endDateParam);
 $stmt->execute();
 $result = $stmt->get_result();
 $clientes = $result->fetch_all(MYSQLI_ASSOC);
@@ -48,7 +55,7 @@ class MYPDF extends TCPDF {
     public function Header() {
         $this->SetFont('dejavusans', 'B', 20);
         $this->SetTextColor(80, 80, 80);
-        $this->Cell(0, 15, 'Relatório de Renovações', 0, false, 'C', 0, '', 0, false, 'M', 'M');
+        $this->Cell(0, 15, 'Relatório de Movimentação', 0, false, 'C', 0, '', 0, false, 'M', 'M');
         $this->SetFont('dejavusans', 'I', 10);
         $this->Cell(0, 15, $this->periodo, 0, true, 'R', 0, '', 0, false, 'M', 'M');
         $this->Line(15, 25, $this->getPageWidth() - 15, 25);
@@ -68,7 +75,7 @@ $pdf = new MYPDF('L', PDF_UNIT, 'A4', true, 'UTF-8', false);
 $pdf->periodo = 'Período: ' . date('d/m/Y', strtotime($startDateParam)) . ' a ' . date('d/m/Y', strtotime($endDateParam));
 $pdf->SetCreator('MRG Seguros System');
 $pdf->SetAuthor($_SESSION['user_nome']);
-$pdf->SetTitle('Relatório de Renovações');
+$pdf->SetTitle('Relatório de Movimentação');
 $pdf->SetMargins(10, 30, 10);
 $pdf->SetHeaderMargin(10);
 $pdf->SetFooterMargin(15);
@@ -83,11 +90,8 @@ $pdf->SetTextColor(0);
 $pdf->SetDrawColor(200, 200, 200);
 $pdf->SetLineWidth(0.3);
 
-// ================================================================
-// ALTERADO: Cabeçalho sem ícones e com "Item Segurado"
-// ================================================================
 $header = ['Cliente', 'Telefone', 'Item Segurado', 'Placa / ID', 'Seguradora', 'Início Vig.', 'Final Vig.', 'Prêmio'];
-$widths = [60, 25, 50, 40, 25, 25, 25, 25]; // Larguras reajustadas
+$widths = [60, 25, 50, 40, 25, 25, 25, 25];
 
 for($i = 0; $i < count($header); ++$i) {
     $pdf->Cell($widths[$i], 7, $header[$i], 1, 0, 'C', 1);
@@ -102,11 +106,9 @@ $totalPremioLiquido = 0;
 if (count($clientes) > 0) {
     foreach ($clientes as $cliente) {
         $totalPremioLiquido += $cliente['premio_liquido'];
-        $finalVigenciaReal = $cliente['final_vigencia'] ?? date('Y-m-d', strtotime($cliente['inicio_vigencia'] . ' +1 year'));
+        // Lógica para determinar a data final real para exibição (mesma lógica da query)
+        $finalVigenciaReal = $cliente['final_vigencia'] && $cliente['final_vigencia'] !== '0000-00-00' ? $cliente['final_vigencia'] : date('Y-m-d', strtotime($cliente['inicio_vigencia'] . ' +1 year'));
         
-        // ================================================================
-        // ALTERADO: Adicionado `item_segurado` ao array de dados da linha
-        // ================================================================
         $row_data = [
             htmlspecialchars($cliente['nome']),
             htmlspecialchars($cliente['numero']),
@@ -141,11 +143,11 @@ $pdf->Ln(5);
 $pdf->SetFont('dejavusans', 'B', 10);
 $pdf->Cell(0, 8, 'Resumo do Período', 0, 1, 'L');
 $pdf->SetFont('dejavusans', '', 10);
-$pdf->Cell(0, 6, 'Total de Apólices para Renovação: ' . count($clientes), 0, 1, 'L');
+$pdf->Cell(0, 6, 'Total de Apólices no Período: ' . count($clientes), 0, 1, 'L');
 $pdf->Cell(0, 6, 'Soma Total do Prêmio Líquido: R$ ' . number_format($totalPremioLiquido, 2, ',', '.'), 0, 1, 'L');
 
 // 8. Finalizar e enviar o PDF
-$filename = "Relatorio_Renovacao.pdf";
+$filename = "Relatorio_Movimentacao.pdf";
 $pdf->Output($filename, 'I');
 
 exit();
