@@ -2,7 +2,7 @@
 $host = 'localhost'; // ou o seu host
 $user = 'root';      // ou o seu usuário
 $pass = '';          // ou a sua senha
-$db = 'mrg';  // o nome do seu banco
+$db = 'mrgteste';  // o nome do seu banco
 
 $conn = new mysqli($host, $user, $pass, $db);
 

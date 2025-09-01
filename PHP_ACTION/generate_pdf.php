@@ -1,131 +1,128 @@
 <?php
-/**
- * Localização: /PHP_ACTION/generate__pdf.php
- * Gera um PDF de resumo do mês com tabela e gráficos de pizza em formato JPG.
- */
-
-require_once 'vendor/autoload.php';
-session_start();
+require_once('vendor/tecnickcom/tcpdf/tcpdf.php');
 include '../db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    die("Acesso negado.");
+// ----------------------------
+// Parâmetros de entrada
+// ----------------------------
+$month = isset($_GET['month']) ? $_GET['month'] : '';
+$year  = isset($_GET['year'])  ? $_GET['year']  : date('Y');
+
+if (!$month) {
+    die("Parâmetro de mês inválido.");
 }
 
-// 1. Obter e validar parâmetros
-$month = $_GET['month'] ?? date('m');
-$year = $_GET['year'] ?? date('Y');
-$months_map = [
-    '01' => 'Janeiro', '02' => 'Fevereiro', '03' => 'Março', '04' => 'Abril', '05' => 'Maio', '06' => 'Junho', 
-    '07' => 'Julho', '08' => 'Agosto', '09' => 'Setembro', '10' => 'Outubro', '11' => 'Novembro', '12' => 'Dezembro'
-];
-$month_name = $months_map[$month] ?? 'Mês Inválido';
+// ----------------------------
+// Consulta ao banco de dados
+// ----------------------------
+$sql = "SELECT 
+            seguradora, 
+            tipo_seguro, 
+            SUM(premio_liquido) AS total_premio_liquido, 
+            SUM(premio_liquido * (comissao / 100)) AS total_comissao, 
+            COUNT(*) AS total_clientes,
+            SUM(CASE WHEN status = 'Emitida' THEN 1 ELSE 0 END) AS apolices_emitidas,
+            SUM(CASE WHEN status = 'Cancelada' THEN 1 ELSE 0 END) AS apolices_canceladas
+        FROM clientes
+        WHERE MONTH(inicio_vigencia) = '$month' AND YEAR(inicio_vigencia) = '$year'
+        GROUP BY seguradora, tipo_seguro
+        ORDER BY seguradora, tipo_seguro";
 
-// 2. Buscar e processar os dados
-$sql = "SELECT seguradora, tipo_seguro, SUM(premio_liquido) as total_premio, COUNT(id) as total_clientes 
-        FROM clientes 
-        WHERE MONTH(inicio_vigencia) = ? AND YEAR(inicio_vigencia) = ? AND status != 'Cancelado'
-        GROUP BY seguradora, tipo_seguro";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ss", $month, $year);
-$stmt->execute();
-$result = $stmt->get_result();
-$data_agrupada = $result->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+$result = $conn->query($sql);
 
-// Processa os dados em arrays para os gráficos
-$premio_por_seguradora = [];
-$clientes_por_tipo = [];
-foreach ($data_agrupada as $row) {
-    @$premio_por_seguradora[$row['seguradora']] += $row['total_premio'];
-    @$clientes_por_tipo[$row['tipo_seguro']] += $row['total_clientes'];
+// ----------------------------
+// Processamento dos totais
+// ----------------------------
+$totalPremioLiquido = 0;
+$totalComissao      = 0;
+$totalEmitidas      = 0;
+$totalCanceladas    = 0;
+$seguradorasSet     = [];
+$tiposSeguroSet     = [];
+
+while ($row = $result->fetch_assoc()) {
+    $totalPremioLiquido += $row['total_premio_liquido'];
+    $totalComissao      += $row['total_comissao'];
+    $totalEmitidas      += $row['apolices_emitidas'];
+    $totalCanceladas    += $row['apolices_canceladas'];
+    $seguradorasSet[$row['seguradora']] = true;
+    $tiposSeguroSet[$row['tipo_seguro']] = true;
 }
 
-// 3. Gerar as URLs dos Gráficos com QuickChart.io
-function getChartUrl($title, $data_array) {
-    if (empty($data_array)) return null;
-    $config = [
-        'type' => 'pie',
-        'data' => [
-            'labels' => array_keys($data_array),
-            'datasets' => [[ 'data' => array_values($data_array) ]]
-        ],
-        'options' => [
-            'title' => ['display' => true, 'text' => $title],
-            'legend' => ['position' => 'right']
-        ]
-    ];
-    
-    // ================================================================
-    // CORREÇÃO 1: Adicionado o parâmetro '&f=jpeg' para pedir um JPG
-    // ================================================================
-    return 'https://quickchart.io/chart?f=jpeg&c=' . urlencode(json_encode($config)) . '&backgroundColor=white&width=400&height=250';
-}
+// Limpa o buffer para evitar conflito de saída
+ob_clean();
 
-$chart_url1 = getChartUrl('Prêmio por Seguradora', $premio_por_seguradora);
-$chart_url2 = getChartUrl('Clientes por Tipo de Seguro', $clientes_por_tipo);
-
-
-// 4. Estender a classe TCPDF para cabeçalho/rodapé
-class MYPDF extends TCPDF {
-    public $periodo = '';
-    public function Header() { /* ... (código inalterado) ... */ }
-    public function Footer() { /* ... (código inalterado) ... */ }
-}
-
-// 5. Iniciar e configurar o PDF
-$pdf = new MYPDF('P', PDF_UNIT, 'A4', true, 'UTF-8', false);
-$pdf->periodo = 'Resumo de ' . $month_name . ' de ' . $year;
-$pdf->SetCreator('MRG Seguros System');
-$pdf->SetAuthor($_SESSION['user_nome']);
-$pdf->SetTitle('Resumo de Produção');
-$pdf->SetMargins(15, 30, 15);
-$pdf->SetAutoPageBreak(TRUE, 25);
+// ----------------------------
+// Criação do PDF
+// ----------------------------
+$pdf = new TCPDF();
+$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetAuthor('Sistema de Seguros');
+$pdf->SetTitle("Análise Produção Mensal da MRG - $month/$year");
+$pdf->SetMargins(15, 20, 15);
+$pdf->SetAutoPageBreak(TRUE, 20);
 $pdf->AddPage();
 
-// 6. Adicionar os gráficos no PDF
-$pdf->SetFont('dejavusans', 'B', 12);
-$pdf->Cell(0, 8, '📊 Análise Gráfica', 0, 1, 'L');
-if ($chart_url1 && $chart_url2) {
-    $img_data1 = @file_get_contents($chart_url1);
-    $img_data2 = @file_get_contents($chart_url2);
+// ----------------------------
+// Título do PDF
+// ----------------------------
+setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'portuguese');
+$nomeMes = strftime('%B', mktime(0,0,0,$month,1));
+$pdf->SetFont('helvetica', 'B', 16);
+$pdf->Cell(0, 12, "Análise Produção Mensal da MRG do Ano $year - " . ucfirst($nomeMes), 0, 1, 'C');
+$pdf->Ln(5);
 
-    // ================================================================
-    // CORREÇÃO 2: Alterado o tipo de imagem de 'PNG' para 'JPG'
-    // ================================================================
-    if ($img_data1) $pdf->Image('@'.$img_data1, 15, null, 90, 0, 'JPG', '', '', true, 150);
-    if ($img_data2) $pdf->Image('@'.$img_data2, 105, null, 90, 0, 'JPG', '', '', true, 150);
-    $pdf->Ln(70);
-} else {
-    $pdf->SetFont('dejavusans', '', 10);
-    $pdf->Cell(0, 8, 'Não há dados suficientes para gerar os gráficos.', 0, 1, 'L');
-    $pdf->Ln(5);
-}
+// ----------------------------
+// Tabela de Dados
+// ----------------------------
+if ($result->num_rows > 0) {
+    // Cabeçalho em verde claro
+    $pdf->SetFillColor(144, 238, 144); // verde claro
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->Cell(40, 10, 'Seguradora', 1, 0, 'C', 1);
+    $pdf->Cell(40, 10, 'Tipo de Seguro', 1, 0, 'C', 1);
+    $pdf->Cell(40, 10, 'Prêmio Líquido', 1, 0, 'C', 1);
+    $pdf->Cell(40, 10, 'Comissão', 1, 0, 'C', 1);
+    $pdf->Cell(30, 10, 'Clientes', 1, 1, 'C', 1);
 
-// 7. Desenhar a tabela de resumo
-$pdf->SetFont('dejavusans', 'B', 12);
-$pdf->Cell(0, 8, '📋 Dados Detalhados', 0, 1, 'L');
-$pdf->SetFont('dejavusans', 'B', 9);
-$pdf->SetFillColor(240, 240, 240);
-$header = ['🏢 Seguradora', '🛡️ Tipo de Seguro', '💰 Total Prêmio', '👥 Total Clientes'];
-$widths = [60, 60, 30, 30];
-for($i=0; $i<count($header); ++$i) $pdf->Cell($widths[$i], 7, $header[$i], 1, 0, 'C', 1);
-$pdf->Ln();
-
-$pdf->SetFont('dejavusans', '', 8);
-$pdf->SetFillColor(255);
-if (count($data_agrupada) > 0) {
-    foreach ($data_agrupada as $row) {
-        $pdf->Cell($widths[0], 6, htmlspecialchars($row['seguradora']), 1, 0, 'L', 1);
-        $pdf->Cell($widths[1], 6, htmlspecialchars($row['tipo_seguro']), 1, 0, 'L', 1);
-        $pdf->Cell($widths[2], 6, 'R$ ' . number_format($row['total_premio'], 2, ',', '.'), 1, 0, 'R', 1);
-        $pdf->Cell($widths[3], 6, $row['total_clientes'], 1, 1, 'C', 1);
+    // Linhas da tabela
+    $pdf->SetFont('helvetica', '', 12);
+    $pdf->SetTextColor(0,0,0);
+    $result->data_seek(0);
+    while ($row = $result->fetch_assoc()) {
+        $pdf->Cell(40, 8, $row['seguradora'], 1, 0, 'C', 0);
+        $pdf->Cell(40, 8, $row['tipo_seguro'], 1, 0, 'C', 0);
+        $pdf->Cell(40, 8, 'R$ ' . number_format($row['total_premio_liquido'], 2, ',', '.'), 1, 0, 'C', 0);
+        $pdf->Cell(40, 8, 'R$ ' . number_format($row['total_comissao'], 2, ',', '.'), 1, 0, 'C', 0);
+        $pdf->Cell(30, 8, $row['total_clientes'], 1, 1, 'C', 0);
     }
+
+    // Resumo adicional
+    $pdf->Ln(5);
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->Cell(0, 8, 'Resumo Adicional', 0, 1);
+    $pdf->SetFont('helvetica', '', 12);
+    $pdf->Cell(0, 6, 'Total Prêmio Líquido do Mês: R$ ' . number_format($totalPremioLiquido, 2, ',', '.'), 0, 1);
+    $pdf->Cell(0, 6, 'Total Comissão do Mês: R$ ' . number_format($totalComissao, 2, ',', '.'), 0, 1);
+    $pdf->Cell(0, 6, 'Total de Seguradoras: ' . count($seguradorasSet), 0, 1);
+    $pdf->Cell(0, 6, 'Total de Tipos de Seguro: ' . count($tiposSeguroSet), 0, 1);
+    $pdf->Cell(0, 6, 'Apólices Emitidas: ' . $totalEmitidas, 0, 1);
+    $pdf->Cell(0, 6, 'Apólices Canceladas: ' . $totalCanceladas, 0, 1);
+
 } else {
-    $pdf->Cell(array_sum($widths), 10, 'Nenhum registro encontrado.', 1, 1, 'C', 1);
+    $pdf->SetFont('helvetica', '', 12);
+    $pdf->Cell(0, 10, 'Nenhum cliente encontrado para este mês.', 0, 1);
 }
 
-// 8. Finalizar e enviar o PDF
-$filename = "resumo_producao_" . strtolower($month_name) . "_" . $year . ".pdf";
-$pdf->Output($filename, 'I');
-exit();
+// ----------------------------
+// Fechamento
+// ----------------------------
+$conn->close();
+
+// ----------------------------
+// Exibe PDF no navegador
+// ----------------------------
+$pdf->Output("Analise_Producao_Mensal_{$month}_{$year}.pdf", 'I');
+exit;
+?>
