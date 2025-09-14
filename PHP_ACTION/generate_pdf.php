@@ -37,6 +37,7 @@ $totalPremioLiquido = 0;
 $totalComissao      = 0;
 $totalEmitidas      = 0;
 $totalCanceladas    = 0;
+$totalClientes      = 0;
 $seguradorasSet     = [];
 $tiposSeguroSet     = [];
 
@@ -45,6 +46,7 @@ while ($row = $result->fetch_assoc()) {
     $totalComissao      += $row['total_comissao'];
     $totalEmitidas      += $row['apolices_emitidas'];
     $totalCanceladas    += $row['apolices_canceladas'];
+    $totalClientes      += $row['total_clientes'];
     $seguradorasSet[$row['seguradora']] = true;
     $tiposSeguroSet[$row['tipo_seguro']] = true;
 }
@@ -103,6 +105,7 @@ if ($result->num_rows > 0) {
     $pdf->SetFont('helvetica', 'B', 12);
     $pdf->Cell(0, 8, 'Resumo Adicional', 0, 1);
     $pdf->SetFont('helvetica', '', 12);
+    $pdf->Cell(0, 6, 'Total Clientes do Mês: ' . $totalClientes, 0, 1);
     $pdf->Cell(0, 6, 'Total Prêmio Líquido do Mês: R$ ' . number_format($totalPremioLiquido, 2, ',', '.'), 0, 1);
     $pdf->Cell(0, 6, 'Total Comissão do Mês: R$ ' . number_format($totalComissao, 2, ',', '.'), 0, 1);
     $pdf->Cell(0, 6, 'Total de Seguradoras: ' . count($seguradorasSet), 0, 1);
