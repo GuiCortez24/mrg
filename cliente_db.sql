@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 179.188.16.204
--- Generation Time: 30-Abr-2025 às 22:09
+-- Generation Time: 26-Set-2025 às 14:16
 -- Versão do servidor: 5.7.32-35-log
 -- PHP Version: 5.6.40-0+deb8u12
 
@@ -41,8 +41,12 @@ CREATE TABLE `clientes` (
   `premio_liquido` decimal(10,2) NOT NULL DEFAULT '0.00',
   `comissao` decimal(5,2) NOT NULL DEFAULT '0.00',
   `status` varchar(20) NOT NULL DEFAULT 'Efetivado',
+  `tipo_operacao` varchar(20) NOT NULL DEFAULT 'NOVO',
   `seguradora` varchar(100) NOT NULL,
   `tipo_seguro` varchar(50) NOT NULL,
+  `item_segurado` varchar(255) DEFAULT NULL,
+  `anotacoes` text,
+  `item_identificacao` varchar(100) DEFAULT NULL COMMENT 'Armazena a placa do veículo ou um número de identificação do item segurado',
   `pdfAntigo` varchar(255) DEFAULT NULL,
   `observacoes` text
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -51,12 +55,8 @@ CREATE TABLE `clientes` (
 -- Extraindo dados da tabela `clientes`
 --
 
-INSERT INTO `clientes` (`id`, `inicio_vigencia`, `final_vigencia`, `apolice`, `nome`, `cpf`, `numero`, `email`, `pdf_path`, `premio_liquido`, `comissao`, `status`, `seguradora`, `tipo_seguro`, `pdfAntigo`, `observacoes`) VALUES
-(61, '2024-08-06', NULL, '1911015707', 'OGMAR CASTELI PANZERA', '00816566615', '35991975000', 'MOINHOSGERAIS@HOTMAIL.COM', NULL, 770.65, 20.00, 'Emitida', 'Porto Seguro', 'Seguro Empresarial', NULL, 'SEGURO RESIDENCIAL..'),
-(62, '2024-08-06', NULL, '1911014011', 'OGMAR CASTELI PANZERA', '00816566615', '(35) 99197-5000', 'MOINHOSGERAIS@HOTMAIL.COM', '../uploads/OGMAR CASTELI PANZERA.pdf.crdownload', 328.79, 25.00, 'Emitida', 'Porto Seguro', 'Seguro Empresarial', NULL, 'SEGURO RESIDENCIAL'),
-(63, '2024-08-02', NULL, '28250316731491911', 'SILVIO MIRANDA SIGNORETTI', '46797297672', '(99) 84170-63', 'JCARVALHOSIGNORETTI@GMAIL.COM', '../uploads/SILVIO MIRANDA SIGNORETTI - ONIX.pdf', 1923.67, 15.00, 'Emitida', 'Porto Seguro', 'Seguro Auto', NULL, ''),
-(1400, '2025-04-24', NULL, '4465485548', 'MARIA APARECIDA GUIMARAES ANDRADE', '929.196.346', '(35) 99979-0085', 'NIRLEIVILELA@HOTMAIL.COM', '../uploads/MARIA APARECIDA GUIMARAES ANDRADE_250423_101013.pdf', 1565.80, 10.00, 'Aguardando EmissÃ£o', 'Porto Seguro', 'Seguro Auto', NULL, NULL),
-(1401, '2025-04-30', NULL, '132251062', 'ALCEBIADES OTAVIO RESENDE MARQUES', '085.374.996', '(35) 99869-0124', 'alcebiadesresende@gmail.com', '../uploads/ALCEBIADES OTAVIO RESENDE MARQUES_250423_105616.pdf', 1971.65, 15.00, 'Aguardando EmissÃ£o', 'Allianz Seguros', 'Seguro Auto', NULL, NULL),
+INSERT INTO `clientes` (`id`, `inicio_vigencia`, `final_vigencia`, `apolice`, `nome`, `cpf`, `numero`, `email`, `pdf_path`, `premio_liquido`, `comissao`, `status`, `tipo_operacao`, `seguradora`, `tipo_seguro`, `item_segurado`, `anotacoes`, `item_identificacao`, `pdfAntigo`, `observacoes`) VALUES
+
 
 -- --------------------------------------------------------
 
@@ -70,6 +70,13 @@ CREATE TABLE `notificacoes` (
   `mensagem` varchar(255) NOT NULL,
   `data_hora` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Extraindo dados da tabela `notificacoes`
+--
+
+INSERT INTO `notificacoes` (`id`, `usuario_id`, `mensagem`, `data_hora`) VALUES
+(3121, 12, 'Usuário Jessica adicionou (RENOVAÇÃO) proposta de JESUS AFONSO PADOVANI.', '2025-09-26 13:43:37');
 
 -- --------------------------------------------------------
 
@@ -91,29 +98,31 @@ CREATE TABLE `seguradoras` (
 
 INSERT INTO `seguradoras` (`id`, `nome`, `usuario`, `senha`, `numero_0800`) VALUES
 (1, 'Aliro Seguro', '55206280682', 'Minasriogrande@1976', '08000130700'),
-(2, 'Allianz Seguros', 'ba080910', 'Minasrg2025.', '08000130700'),
-(3, 'Azul Seguros', '030371', 'Mrg@1976', '08007030203'),
-(4, 'HDI Seguros', '05825531645', 'tmrg1976', '08004344340'),
+(2, 'Allianz Seguros', 'ba080910', 'Minasrg1976@', '08000130700'),
+(3, 'Azul Seguros', '030371', 'Minas@1976', '08007030203'),
+(4, 'HDI Seguros', '05825531645', 'Tmrg@1976', '08004344340'),
 (5, 'Liberty Seguros', '55206280682', 'Minasriogrande@1976', '08007014120'),
 (6, 'MAPFRE', '55206280682', 'Minas@2024', '08007754545'),
-(7, 'Porto Seguro', '55206280682 - 28250J (P)', 'Mrg2024!', '08007270800'),
+(7, 'Porto Seguro', '55206280682 - 28250J (P)', 'Mrg2025@', '08007270800'),
 (8, 'Sompo Auto', '050232500000', 'Mrg2024!', '08004344340'),
-(9, 'Tokio Marine Seguros', '10245393692', 'Mrg2025!', '08003186546'),
+(9, 'Tokio Marine Seguros', '10245393692', 'Mrg1976@', '08003186546'),
 (10, 'Zurich Brasil Seguros', '270044', 'Mrg@1976', '08007077883'),
 (11, 'Sancor Seguros', '222139653', 'Mrgdiamond53', '08002000392'),
 (12, 'Suhai', '01147632000145', 'Mrg1976!', '08003278424'),
 (13, 'Mitsui', '0085740', 'Mrg@1976!', '08007077883'),
-(14, 'Sura Seguros', '10245393692', 'Minasrio@1976', '08007770989'),
+(14, 'Sura Seguros', '10245393692', 'Minasrio1976@', '08007770989'),
 (15, 'Ezze', '222139653', 'Wmrgezze1976!', '08007029985'),
 (17, 'Unimed Seguros', '102.453.936-92', 'Mrgunimed1976@', '08000166633'),
 (18, 'Bradesco', '01147632000145', 'Mrg1976!', '08007012757'),
 (19, 'Zurich LIFE', '620140', 'Mrg1952!', '1'),
-(20, 'Porto LIFE', '102.453.936-92', 'Mrg2024!', '1'),
+(20, 'Porto LIFE', '102.453.936-92', 'Wmrg1976#', '1'),
 (21, 'SulAmerica', '40183', '22725', '1'),
-(22, 'bradessco life', '10245393692', 'Mrg1890;', '08007012757'),
+(22, 'bradessco life', '10245393692', 'Mrg1890!', '08007012757'),
 (23, 'BICI SURA', 'mrg@mrgseguros.com.br', 'Mrg1976', '08007049399'),
 (24, 'SUHAI MRG', '55206280682', 'Rgminas2024!', '08003278424'),
-(25, 'Sura Canal corretor', '18280', 'Corretora@25', '0800');
+(25, 'Sura Canal corretor', '18280', 'Corretora@25', '0800'),
+(27, 'SUHAI DIAMOND LIFE', '10245393692', 'Wmrg1976!', '0800'),
+(28, 'MAPFRE CONECT', '100282502 - 58271', 'Mrg1976!', '0');
 
 -- --------------------------------------------------------
 
@@ -178,19 +187,19 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT for table `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1443;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2368;
 
 --
 -- AUTO_INCREMENT for table `notificacoes`
 --
 ALTER TABLE `notificacoes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1999;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3122;
 
 --
 -- AUTO_INCREMENT for table `seguradoras`
 --
 ALTER TABLE `seguradoras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `usuarios`

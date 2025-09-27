@@ -1,6 +1,10 @@
-<?php
-// INCLUDES/header.php
-session_start();
+<?php // INCLUDES/header.php
+
+// CORREÇÃO APLICADA AQUI:
+// Inicia a sessão somente se nenhuma já estiver ativa.
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../login.php');

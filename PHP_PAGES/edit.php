@@ -1,7 +1,7 @@
 <?php
 /**
  * Localização: /PHP_PAGES/edit.php
- * Página para editar um cliente existente, com suporte a múltiplos PDFs e item segurado.
+ * Página para editar um cliente existente (versão refatorada).
  */
 
 $page_title = "Editar Proposta";
@@ -24,8 +24,9 @@ if ($result_cliente->num_rows === 0) {
 $cliente = $result_cliente->fetch_assoc();
 $stmt_cliente->close();
 
-// Busca a lista de seguradoras
+// Busca as listas para os selects
 $seguradoras_result = $conn->query("SELECT nome FROM seguradoras ORDER BY nome ASC");
+$ramos_result = $conn->query("SELECT nome FROM ramos_seguro ORDER BY nome ASC"); // NOVO: Busca os ramos
 
 include '../INCLUDES/header.php';
 ?>
@@ -51,132 +52,22 @@ include '../INCLUDES/header.php';
             <form method="POST" action="../PHP_ACTION/handle_edit.php" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="<?php echo $cliente['id']; ?>">
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="inicio_vigencia" class="form-label"><i class="bi bi-calendar-day"></i> Início Vigência</label>
-                        <input type="date" class="form-control" id="inicio_vigencia" name="inicio_vigencia" value="<?php echo htmlspecialchars($cliente['inicio_vigencia']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="final_vigencia" class="form-label"><i class="bi bi-calendar-check"></i> Final Vigência</label>
-                        <input type="date" class="form-control" id="final_vigencia" name="final_vigencia" value="<?php echo htmlspecialchars($cliente['final_vigencia']); ?>">
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="nome" class="form-label"><i class="bi bi-person"></i> Nome</label>
-                        <input type="text" class="form-control" id="nome" name="nome" value="<?php echo htmlspecialchars($cliente['nome']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="cpf" class="form-label"><i class="bi bi-card-text"></i> CPF/CNPJ</label>
-                        <input type="text" class="form-control" id="cpf" name="cpf" value="<?php echo htmlspecialchars($cliente['cpf']); ?>" required>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="numero" class="form-label"><i class="bi bi-telephone"></i> Celular</label>
-                        <input type="text" class="form-control" id="numero" name="numero" value="<?php echo htmlspecialchars($cliente['numero']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="email" class="form-label"><i class="bi bi-envelope"></i> Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($cliente['email']); ?>" required>
-                    </div>
-                </div>
-
+                <?php 
+                    // Os arquivos include agora usarão a variável $cliente para preencher os campos
+                    include '../INCLUDES/form_fields_pessoais.php'; 
+                ?>
+                <hr class="my-4">
+                <?php include '../INCLUDES/form_fields_seguro.php'; ?>
+                <hr class="my-4">
+                <?php include '../INCLUDES/form_fields_financeiro.php'; ?>
                 <hr class="my-4">
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="seguradora" class="form-label"><i class="bi bi-building"></i> Seguradora</label>
-                        <select class="form-select" id="seguradora" name="seguradora" required>
-                            <?php while($row_seg = $seguradoras_result->fetch_assoc()): ?>
-                                <option value="<?php echo htmlspecialchars($row_seg['nome']); ?>" <?php if ($cliente['seguradora'] == $row_seg['nome']) echo 'selected'; ?>>
-                                    <?php echo htmlspecialchars($row_seg['nome']); ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="tipo_seguro" class="form-label"><i class="bi bi-shield-check"></i> Ramo do Seguro</label>
-                        <select class="form-select" id="tipo_seguro" name="tipo_seguro" required>
-                            <option value="Seguro Auto" <?php if ($cliente['tipo_seguro'] == 'Seguro Auto') echo 'selected'; ?>>Seguro Auto</option>
-                            <option value="Seguro Moto" <?php if ($cliente['tipo_seguro'] == 'Seguro Moto') echo 'selected'; ?>>Seguro Moto</option>
-                            <option value="Seguro Residencial" <?php if ($cliente['tipo_seguro'] == 'Seguro Residencial') echo 'selected'; ?>>Seguro Residencial</option>
-                            <option value="Seguro Empresarial" <?php if ($cliente['tipo_seguro'] == 'Seguro Empresarial') echo 'selected'; ?>>Seguro Empresarial</option>
-                            <option value="Seguro de Vida" <?php if ($cliente['tipo_seguro'] == 'Seguro de Vida') echo 'selected'; ?>>Seguro de Vida</option>
-                            <option value="Acidentes Pessoais" <?php if ($cliente['tipo_seguro'] == 'Acidentes Pessoais') echo 'selected'; ?>>Acidentes Pessoais</option>
-                            <option value="Consórcio" <?php if ($cliente['tipo_seguro'] == 'Consórcio') echo 'selected'; ?>>Consórcio</option>
-                            <option value="Seguro Transporte" <?php if ($cliente['tipo_seguro'] == 'Seguro Transporte') echo 'selected'; ?>>Seguro Transporte</option>
-                            <option value="Seguro Saúde" <?php if ($cliente['tipo_seguro'] == 'Seguro Saúde') echo 'selected'; ?>>Seguro Saúde</option>
-                            <option value="Seguro Dental" <?php if ($cliente['tipo_seguro'] == 'Seguro Dental') echo 'selected'; ?>>Seguro Dental</option>
-                            <option value="Seguro Frota" <?php if ($cliente['tipo_seguro'] == 'Seguro Frota') echo 'selected'; ?>>Seguro Frota</option>
-                            <option value="Seguro Agronegócio" <?php if ($cliente['tipo_seguro'] == 'Seguro Agronegócio') echo 'selected'; ?>>Seguro Agronegócio</option>
-                            <option value="Seguro Viagem" <?php if ($cliente['tipo_seguro'] == 'Seguro Viagem') echo 'selected'; ?>>Seguro Viagem</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        <label for="item_segurado" class="form-label"><i class="bi bi-box-seam"></i> Item Segurado</label>
-                        <input type="text" class="form-control" id="item_segurado" name="item_segurado" value="<?php echo htmlspecialchars($cliente['item_segurado'] ?? ''); ?>" placeholder="Ex: Veículo Toyota Corolla, Residência na Rua X, etc.">
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6" id="campo_placa" style="display: none;">
-                        <label for="placa" class="form-label"><i class="bi bi-car-front-fill"></i> Placa do Veículo</label>
-                        <input type="text" class="form-control" id="placa" name="item_identificacao" value="<?php echo htmlspecialchars($cliente['item_identificacao']); ?>">
-                    </div>
-                    <div class="col-md-6" id="campo_identificacao" style="display: none;">
-                        <label for="identificacao" class="form-label"><i class="bi bi-hash"></i> Número de Identificação</label>
-                        <input type="text" class="form-control" id="identificacao" name="item_identificacao" value="<?php echo htmlspecialchars($cliente['item_identificacao']); ?>">
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="apolice" class="form-label"><i class="bi bi-file-earmark-text"></i> Nº da Proposta</label>
-                        <input type="text" class="form-control" id="apolice" name="apolice" value="<?php echo htmlspecialchars($cliente['apolice']); ?>" required>
-                        <div id="apolice-feedback" class="form-text"></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="status" class="form-label"><i class="bi bi-tags"></i> Status</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="Aguardando Emissão" <?php if ($cliente['status'] == 'Aguardando Emissão') echo 'selected'; ?>>Aguardando Emissão</option>
-                            <option value="Emitida" <?php if ($cliente['status'] == 'Emitida') echo 'selected'; ?>>Emitida</option>
-                            <option value="Cancelado" <?php if ($cliente['status'] == 'Cancelado') echo 'selected'; ?>>Cancelado</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                     <div class="col-md-6">
-                        <label for="premio_liquido" class="form-label"><i class="bi bi-currency-dollar"></i> Prêmio Líquido</label>
-                        <input type="text" class="form-control" id="premio_liquido" name="premio_liquido" value="<?php echo htmlspecialchars($cliente['premio_liquido']); ?>" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="comissao" class="form-label"><i class="bi bi-percent"></i> Comissão (%)</label>
-                        <input type="text" class="form-control" id="comissao" name="comissao" value="<?php echo htmlspecialchars($cliente['comissao']); ?>" required>
-                    </div>
-                </div>
-
-                <hr class="my-4">
                 <h5><i class="bi bi-paperclip"></i> Anexos da Proposta</h5>
                 <div class="card card-body mb-3">
                     <?php
                     $pdf_data = $cliente['pdf_path'];
                     $pdfs = json_decode($pdf_data, true);
-
-                    // Lógica para lidar com os dois formatos de anexo (novo e antigo)
-                    if (is_array($pdfs) && !empty($pdfs)) {
-                        $pdf_list = $pdfs;
-                    } elseif (!is_array($pdfs) && !empty($pdf_data)) {
-                        $pdf_list = [$pdf_data]; // Trata o formato antigo como uma lista de um item
-                    } else {
-                        $pdf_list = [];
-                    }
+                    $pdf_list = is_array($pdfs) ? $pdfs : (!empty($pdf_data) ? [$pdf_data] : []);
 
                     if (!empty($pdf_list)):
                     ?>
@@ -217,7 +108,6 @@ include '../INCLUDES/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Lógica para os campos dinâmicos de Placa/ID
     const tipoSeguroSelect = document.getElementById('tipo_seguro');
     const campoPlaca = document.getElementById('campo_placa');
     const inputPlaca = document.getElementById('placa');
@@ -226,23 +116,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function toggleCampos() {
         const selectedValue = tipoSeguroSelect.value;
-        inputPlaca.disabled = true;
-        inputIdentificacao.disabled = true;
-
-        if (selectedValue === 'Seguro Auto' || selectedValue === 'Seguro Moto') {
-            campoPlaca.style.display = 'block';
-            inputPlaca.disabled = false;
-            campoIdentificacao.style.display = 'none';
-        } else {
-            campoIdentificacao.style.display = 'block';
-            inputIdentificacao.disabled = false;
-            campoPlaca.style.display = 'none';
-        }
+        const isVeiculo = selectedValue === 'Seguro Auto' || selectedValue === 'Seguro Moto';
+        
+        campoPlaca.style.display = isVeiculo ? 'block' : 'none';
+        inputPlaca.disabled = !isVeiculo;
+        
+        campoIdentificacao.style.display = isVeiculo ? 'none' : 'block';
+        inputIdentificacao.disabled = isVeiculo;
     }
 
     tipoSeguroSelect.addEventListener('change', function() {
-        document.getElementById('placa').value = '';
-        document.getElementById('identificacao').value = '';
+        if(inputPlaca) inputPlaca.value = '';
+        if(inputIdentificacao) inputIdentificacao.value = '';
         toggleCampos();
     });
 

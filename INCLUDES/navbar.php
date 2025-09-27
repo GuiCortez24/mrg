@@ -12,9 +12,6 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
                 
-                <!-- ================================================================ -->
-                <!-- NOVO: Link para a página de BI adicionado -->
-                <!-- ================================================================ -->
                 <li class="nav-item">
                     <a class="nav-link" href="relatorio_bi.php"><i class="bi bi-bar-chart-line-fill"></i> BI / Análise</a>
                 </li>
@@ -22,6 +19,18 @@
                 <li class="nav-item">
                     <a class="nav-link" href="months.php"><i class="bi bi-calendar3-week"></i> Produção Mensal</a>
                 </li>
+                
+                <?php
+                if (isset($_SESSION['user_email'])) {
+                    $user_email = $_SESSION['user_email'];
+                    if ($user_email == 'ja@mrgseguros.com.br' || $user_email == 'william@mrgseguros.com.br') {
+                        // Se for um dos e-mails de admin, exibe o link
+                        echo '<li class="nav-item">';
+                        echo '    <a class="nav-link" href=""></i> Fluxo de Caixa</a>';
+                        echo '</li>';
+                    }
+                }
+                ?>
                 <li class="nav-item">
                     <a class="nav-link" href="info_loja.php"><i class="bi bi-building"></i> Seguradoras</a>
                 </li>
@@ -57,7 +66,7 @@
                                 </div>
                             </li>
                         <?php endwhile;
-                              else: ?>
+                                else: ?>
                             <li><span class="dropdown-item text-center text-muted py-3">Sem novas notificações</span></li>
                         <?php endif; ?>
                         

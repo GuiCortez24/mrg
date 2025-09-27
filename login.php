@@ -17,7 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $senha = $_POST['senha'];
 
-    $stmt = $conn->prepare("SELECT id, nome, senha FROM usuarios WHERE email = ?");
+    // AJUSTE 1: Adicionado 'email' na consulta SQL para que possamos salvá-lo na sessão
+    $stmt = $conn->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = ?");
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -29,8 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (password_verify($senha, $usuario['senha'])) {
             // Regenera o ID da sessão para segurança
             session_regenerate_id(true);
+
+            // Armazena os dados do usuário na sessão
             $_SESSION['user_id'] = $usuario['id'];
             $_SESSION['user_nome'] = $usuario['nome'];
+
+            // AJUSTE 2: Salvo o email do usuário na sessão para verificação de permissões
+            $_SESSION['user_email'] = $usuario['email'];
+
             header('Location: index.php');
             exit();
         } else {

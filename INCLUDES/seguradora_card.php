@@ -1,81 +1,45 @@
 <?php
 /**
- * Localização: INCLUDES/seguradora_card.php
- * Exibe um card para uma seguradora específica e seus modais de edição/exclusão.
- * Espera que a variável $seguradora esteja definida.
+ * Localização: INCLUDES/seguradoras/seguradora_card.php
+ * Exibe um card para uma seguradora específica.
  */
 ?>
-<div class="col-md-4 mb-4">
-    <div class="card h-100 shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title text-success"><i class="bi bi-building me-2"></i><?php echo htmlspecialchars($seguradora['nome']); ?></h5>
-            <p class="card-text mb-1"><i class="bi bi-person-fill me-2"></i><strong>Usuário:</strong> <?php echo htmlspecialchars($seguradora['usuario']); ?></p>
-            <p class="card-text mb-1"><i class="bi bi-key-fill me-2"></i><strong>Senha:</strong> <?php echo htmlspecialchars($seguradora['senha']); ?></p>
-            <p class="card-text"><i class="bi bi-telephone-fill me-2"></i><strong>0800:</strong> <?php echo htmlspecialchars($seguradora['numero_0800']); ?></p>
+<div class="col-md-4 col-lg-3 mb-4 d-flex align-items-stretch">
+    <div class="card h-100 shadow-sm w-100">
+        <div class="card-header bg-light fw-bold text-success">
+            <i class="bi bi-building me-2"></i><?php echo htmlspecialchars($seguradora['nome']); ?>
         </div>
-        <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $seguradora['id']; ?>">
-                <i class="bi bi-pencil-square"></i> Editar
-            </button>
-            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal<?php echo $seguradora['id']; ?>">
-                <i class="bi bi-trash"></i> Excluir
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de Edição -->
-<div class="modal fade" id="editModal<?php echo $seguradora['id']; ?>" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Seguradora</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="card-body d-flex flex-column">
+            <p class="card-text mb-2"><strong class="text-muted">Usuário:</strong> <?php echo htmlspecialchars($seguradora['usuario']); ?></p>
+            
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <strong class="text-muted">Senha:</strong>
+                    <span class="password-text" data-password="<?php echo htmlspecialchars($seguradora['senha']); ?>">••••••••</span>
+                </div>
+                <span class="toggle-password-btn text-primary" style="cursor: pointer;" title="Mostrar/Ocultar Senha">
+                    <i class="bi bi-eye-fill"></i>
+                </span>
             </div>
-            <form method="POST" action="../PHP_ACTION/handle_seguradoras.php">
-                <div class="modal-body">
-                    <input type="hidden" name="id" value="<?php echo $seguradora['id']; ?>">
-                    <div class="mb-3">
-                        <label class="form-label">Usuário</label>
-                        <input type="text" class="form-control" name="usuario" value="<?php echo htmlspecialchars($seguradora['usuario']); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nova Senha</label>
-                        <input type="text" class="form-control" name="senha" placeholder="Deixe em branco para manter a atual">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Número 0800</label>
-                        <input type="text" class="form-control" name="numero_0800" value="<?php echo htmlspecialchars($seguradora['numero_0800']); ?>" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" name="edit_seguradora" class="btn btn-primary">Salvar Alterações</button>
-                </div>
-            </form>
+            
+            <p class="card-text mt-auto"><strong class="text-muted">0800:</strong> <?php echo htmlspecialchars($seguradora['numero_0800']); ?></p>
         </div>
-    </div>
-</div>
-
-<!-- Modal de Exclusão -->
-<div class="modal fade" id="deleteModal<?php echo $seguradora['id']; ?>" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Exclusão</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="../PHP_ACTION/handle_seguradoras.php">
-                <div class="modal-body">
-                    <p>Você tem certeza que deseja excluir a seguradora <strong><?php echo htmlspecialchars($seguradora['nome']); ?></strong>?</p>
-                    <p class="text-danger">Esta ação não pode ser desfeita.</p>
-                    <input type="hidden" name="id" value="<?php echo $seguradora['id']; ?>">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" name="delete_seguradora" class="btn btn-danger">Sim, Excluir</button>
-                </div>
-            </form>
+        <div class="card-footer text-center bg-white border-0 pb-3">
+            <button type="button" class="btn btn-warning btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#editModal"
+                    data-id="<?php echo $seguradora['id']; ?>"
+                    data-nome="<?php echo htmlspecialchars($seguradora['nome']); ?>"
+                    data-usuario="<?php echo htmlspecialchars($seguradora['usuario']); ?>"
+                    data-senha="" 
+                    data-numero0800="<?php echo htmlspecialchars($seguradora['numero_0800']); ?>">
+                <i class="bi bi-pencil-fill"></i> Editar
+            </button>
+            <a href="../PHP_ACTION/handle_seguradoras.php?delete_id=<?php echo $seguradora['id']; ?>" 
+               class="btn btn-danger btn-sm" 
+               onclick="return confirm('Tem certeza que deseja excluir a seguradora <?php echo htmlspecialchars($seguradora['nome']); ?>?');">
+                <i class="bi bi-trash-fill"></i> Excluir
+            </a>
         </div>
     </div>
 </div>

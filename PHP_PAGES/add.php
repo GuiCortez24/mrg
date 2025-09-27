@@ -6,7 +6,15 @@
 
 $page_title = "Adicionar Novo Cliente";
 include '../db.php';
+
+// Busca as seguradoras (já existente)
 $seguradoras_result = $conn->query("SELECT nome FROM seguradoras ORDER BY nome ASC");
+
+// --- AJUSTE APLICADO AQUI ---
+// Busca os ramos de seguro da nova tabela para alimentar o select dinamicamente
+$ramos_result = $conn->query("SELECT nome FROM ramos_seguro ORDER BY nome ASC");
+// --- FIM DO AJUSTE ---
+
 include '../INCLUDES/header.php';
 ?>
 
@@ -40,18 +48,18 @@ include '../INCLUDES/header.php';
                 <?php include '../INCLUDES/form_fields_financeiro.php'; ?>
                 
                 <div class="row mb-2">
-    <div class="col-md-12">
-        <label class="form-label"><i class="bi bi-paperclip"></i> Anexar Proposta(s) (PDF)</label>
-        <div id="pdf-container">
-            <div class="input-group mb-2">
-                <input type="file" class="form-control" name="pdfs[]" accept=".pdf" required>
-            </div>
-        </div>
-        <button type="button" id="add-pdf-btn" class="btn btn-sm btn-success mt-2">
-            <i class="bi bi-plus-circle"></i> Adicionar outro anexo
-        </button>
-    </div>
-</div>
+                    <div class="col-md-12">
+                        <label class="form-label"><i class="bi bi-paperclip"></i> Anexar Proposta(s) (PDF)</label>
+                        <div id="pdf-container">
+                            <div class="input-group mb-2">
+                                <input type="file" class="form-control" name="pdfs[]" accept=".pdf" required>
+                            </div>
+                        </div>
+                        <button type="button" id="add-pdf-btn" class="btn btn-sm btn-success mt-2">
+                            <i class="bi bi-plus-circle"></i> Adicionar outro anexo
+                        </button>
+                    </div>
+                </div>
                 
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-save"></i> Salvar Proposta</button>
