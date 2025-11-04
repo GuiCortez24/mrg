@@ -1,0 +1,25 @@
+/**
+ * Estilo profissional para o ícone de configurações flutuante
+ * Efeito minimalista, sem fundo, na cor verde.
+ */
+ .floating-settings-btn {
+    /* --- Posicionamento Essencial --- */
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1030;
+
+    /* --- Estilo do Ícone (AGORA EM VERDE) --- */
+    font-size: 40px;
+    color: #28a745; /* Verde claro (padrão Bootstrap 'success') */
+    
+    /* --- Efeitos Visuais --- */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
+
+.floating-settings-btn:hover {
+    color: #218838; /* Um tom de verde um pouco mais escuro para o efeito hover */
+    transform: rotate(90deg) scale(1.1);
+}

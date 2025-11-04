@@ -1,20 +1,31 @@
 <?php
 require_once('vendor/tecnickcom/tcpdf/tcpdf.php');
-include '../db.php';
+require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../INCLUDES/functions.php'; // Garante acesso à função hasPermission
+
+// ===================================================================
+// 1. AJUSTE DE SEGURANÇA: VERIFICAÇÃO DE PERMISSÃO
+// ===================================================================
+// Verifica se o usuário tem permissão para ver dados de comissão.
+if (!hasPermission('pode_ver_comissao_total')) {
+    // Se não tiver, interrompe a execução com uma mensagem de erro.
+    http_response_code(403); // Código de "Acesso Proibido"
+    die('Acesso negado. Você não tem permissão para gerar este relatório.');
+}
 
 // ----------------------------
 // Parâmetros de entrada
 // ----------------------------
-$month = isset($_GET['month']) ? $_GET['month'] : '';
-$year  = isset($_GET['year'])  ? $_GET['year']  : date('Y');
+$month = $_GET['month'] ?? '';
+$year  = $_GET['year']  ?? date('Y');
 
-if (!$month) {
+if (empty($month) || !checkdate($month, 1, $year)) {
     die("Parâmetro de mês inválido.");
 }
 
-// ----------------------------
-// Consulta ao banco de dados
-// ----------------------------
+// ===================================================================
+// 2. AJUSTE DE SEGURANÇA: PROTEÇÃO CONTRA SQL INJECTION
+// ===================================================================
 $sql = "SELECT 
             seguradora, 
             tipo_seguro, 
@@ -22,13 +33,18 @@ $sql = "SELECT
             SUM(premio_liquido * (comissao / 100)) AS total_comissao, 
             COUNT(*) AS total_clientes,
             SUM(CASE WHEN status = 'Emitida' THEN 1 ELSE 0 END) AS apolices_emitidas,
-            SUM(CASE WHEN status = 'Cancelada' THEN 1 ELSE 0 END) AS apolices_canceladas
+            SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS apolices_canceladas
         FROM clientes
-        WHERE MONTH(inicio_vigencia) = '$month' AND YEAR(inicio_vigencia) = '$year'
+        WHERE MONTH(inicio_vigencia) = ? AND YEAR(inicio_vigencia) = ?
         GROUP BY seguradora, tipo_seguro
         ORDER BY seguradora, tipo_seguro";
 
-$result = $conn->query($sql);
+// Usando prepared statements para segurança
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $month, $year);
+$stmt->execute();
+$result = $stmt->get_result();
+// ===================================================================
 
 // ----------------------------
 // Processamento dos totais
@@ -41,7 +57,10 @@ $totalClientes      = 0;
 $seguradorasSet     = [];
 $tiposSeguroSet     = [];
 
-while ($row = $result->fetch_assoc()) {
+// Criamos um array com os dados para não precisar re-executar a query
+$data = $result->fetch_all(MYSQLI_ASSOC);
+
+foreach ($data as $row) {
     $totalPremioLiquido += $row['total_premio_liquido'];
     $totalComissao      += $row['total_comissao'];
     $totalEmitidas      += $row['apolices_emitidas'];
@@ -52,14 +71,16 @@ while ($row = $result->fetch_assoc()) {
 }
 
 // Limpa o buffer para evitar conflito de saída
-ob_clean();
+if (ob_get_level()) {
+    ob_end_clean();
+}
 
 // ----------------------------
 // Criação do PDF
 // ----------------------------
-$pdf = new TCPDF();
+$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor('Sistema de Seguros');
+$pdf->SetAuthor('Sistema MRG Seguros');
 $pdf->SetTitle("Análise Produção Mensal da MRG - $month/$year");
 $pdf->SetMargins(15, 20, 15);
 $pdf->SetAutoPageBreak(TRUE, 20);
@@ -69,58 +90,63 @@ $pdf->AddPage();
 // Título do PDF
 // ----------------------------
 setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'portuguese');
-$nomeMes = strftime('%B', mktime(0,0,0,$month,1));
+$nomeMes = ucfirst(strftime('%B', mktime(0, 0, 0, $month, 1)));
 $pdf->SetFont('helvetica', 'B', 16);
-$pdf->Cell(0, 12, "Análise Produção Mensal da MRG do Ano $year - " . ucfirst($nomeMes), 0, 1, 'C');
+$pdf->Cell(0, 12, "Análise Produção Mensal da MRG - $nomeMes de $year", 0, 1, 'C');
 $pdf->Ln(5);
 
 // ----------------------------
 // Tabela de Dados
 // ----------------------------
-if ($result->num_rows > 0) {
-    // Cabeçalho em verde claro
-    $pdf->SetFillColor(144, 238, 144); // verde claro
-    $pdf->SetTextColor(0, 0, 0);
-    $pdf->SetFont('helvetica', 'B', 12);
-    $pdf->Cell(40, 10, 'Seguradora', 1, 0, 'C', 1);
-    $pdf->Cell(40, 10, 'Tipo de Seguro', 1, 0, 'C', 1);
-    $pdf->Cell(40, 10, 'Prêmio Líquido', 1, 0, 'C', 1);
-    $pdf->Cell(40, 10, 'Comissão', 1, 0, 'C', 1);
-    $pdf->Cell(30, 10, 'Clientes', 1, 1, 'C', 1);
+if (count($data) > 0) {
+    // Cabeçalho
+    $pdf->SetFillColor(220, 230, 240); // Azul claro suave
+    $pdf->SetTextColor(0);
+    $pdf->SetFont('helvetica', 'B', 10);
+    $pdf->Cell(45, 7, 'Seguradora', 1, 0, 'C', 1);
+    $pdf->Cell(45, 7, 'Tipo de Seguro', 1, 0, 'C', 1);
+    $pdf->Cell(35, 7, 'Prêmio Líquido', 1, 0, 'C', 1);
+    $pdf->Cell(35, 7, 'Comissão', 1, 0, 'C', 1);
+    $pdf->Cell(20, 7, 'Apólices', 1, 1, 'C', 1);
 
     // Linhas da tabela
-    $pdf->SetFont('helvetica', '', 12);
-    $pdf->SetTextColor(0,0,0);
-    $result->data_seek(0);
-    while ($row = $result->fetch_assoc()) {
-        $pdf->Cell(40, 8, $row['seguradora'], 1, 0, 'C', 0);
-        $pdf->Cell(40, 8, $row['tipo_seguro'], 1, 0, 'C', 0);
-        $pdf->Cell(40, 8, 'R$ ' . number_format($row['total_premio_liquido'], 2, ',', '.'), 1, 0, 'C', 0);
-        $pdf->Cell(40, 8, 'R$ ' . number_format($row['total_comissao'], 2, ',', '.'), 1, 0, 'C', 0);
-        $pdf->Cell(30, 8, $row['total_clientes'], 1, 1, 'C', 0);
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetFillColor(255);
+    $fill = 0;
+    foreach ($data as $row) {
+        $pdf->Cell(45, 6, $row['seguradora'], 'LR', 0, 'L', $fill);
+        $pdf->Cell(45, 6, $row['tipo_seguro'], 'LR', 0, 'L', $fill);
+        $pdf->Cell(35, 6, 'R$ ' . number_format($row['total_premio_liquido'], 2, ',', '.'), 'LR', 0, 'R', $fill);
+        $pdf->Cell(35, 6, 'R$ ' . number_format($row['total_comissao'], 2, ',', '.'), 'LR', 0, 'R', $fill);
+        $pdf->Cell(20, 6, $row['total_clientes'], 'LR', 1, 'C', $fill);
+        $fill = !$fill;
     }
+    $pdf->Cell(180, 0, '', 'T'); // Linha final da tabela
+    $pdf->Ln(10);
 
     // Resumo adicional
-    $pdf->Ln(5);
     $pdf->SetFont('helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Resumo Adicional', 0, 1);
-    $pdf->SetFont('helvetica', '', 12);
-    $pdf->Cell(0, 6, 'Total Clientes do Mês: ' . $totalClientes, 0, 1);
-    $pdf->Cell(0, 6, 'Total Prêmio Líquido do Mês: R$ ' . number_format($totalPremioLiquido, 2, ',', '.'), 0, 1);
-    $pdf->Cell(0, 6, 'Total Comissão do Mês: R$ ' . number_format($totalComissao, 2, ',', '.'), 0, 1);
-    $pdf->Cell(0, 6, 'Total de Seguradoras: ' . count($seguradorasSet), 0, 1);
-    $pdf->Cell(0, 6, 'Total de Tipos de Seguro: ' . count($tiposSeguroSet), 0, 1);
-    $pdf->Cell(0, 6, 'Apólices Emitidas: ' . $totalEmitidas, 0, 1);
-    $pdf->Cell(0, 6, 'Apólices Canceladas: ' . $totalCanceladas, 0, 1);
+    $pdf->Cell(0, 8, 'Resumo Geral do Mês', 0, 1);
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->Cell(0, 7, 'Total Prêmio Líquido: R$ ' . number_format($totalPremioLiquido, 2, ',', '.'), 0, 1);
+    $pdf->Cell(0, 7, 'Total Comissão: R$ ' . number_format($totalComissao, 2, ',', '.'), 0, 1);
+    $pdf->Cell(0, 7, 'Total de Apólices (Clientes): ' . $totalClientes, 0, 1);
+    $pdf->Ln(2);
+    $pdf->Cell(0, 7, 'Total de Seguradoras Envolvidas: ' . count($seguradorasSet), 0, 1);
+    $pdf->Cell(0, 7, 'Total de Ramos Envolvidos: ' . count($tiposSeguroSet), 0, 1);
+    $pdf->Ln(2);
+    $pdf->Cell(0, 7, 'Apólices Emitidas no Período: ' . $totalEmitidas, 0, 1);
+    $pdf->Cell(0, 7, 'Apólices Canceladas no Período: ' . $totalCanceladas, 0, 1);
 
 } else {
     $pdf->SetFont('helvetica', '', 12);
-    $pdf->Cell(0, 10, 'Nenhum cliente encontrado para este mês.', 0, 1);
+    $pdf->Cell(0, 10, 'Nenhum dado de produção encontrado para este mês.', 0, 1);
 }
 
 // ----------------------------
 // Fechamento
 // ----------------------------
+$stmt->close();
 $conn->close();
 
 // ----------------------------

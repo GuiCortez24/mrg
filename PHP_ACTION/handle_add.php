@@ -12,10 +12,15 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Proteção CSRF
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+        header('Location: ../PHP_PAGES/add.php?status=error&msg=' . urlencode('Falha de segurança (CSRF). Atualize a página e tente novamente.'));
+        exit();
+    }
     
     // 1. Coleta de todos os dados do formulário
     $inicio_vigencia = $_POST['inicio_vigencia'];
-    $final_vigencia = !empty($_POST['final_vigencia']) ? $_POST['final_vigencia'] : NULL;
+    $final_vigencia = $_POST['final_vigencia'];
     $apolice = $_POST['apolice'];
     $nome = $_POST['nome'];
     $cpf = preg_replace('/[^0-9]/', '', $_POST['cpf']);
@@ -29,6 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $item_segurado = $_POST['item_segurado'];
     $item_identificacao = !empty($_POST['item_identificacao']) ? $_POST['item_identificacao'] : NULL;
     $usuario_id = $_SESSION['user_id'];
+
+    // 1.1 Validações de vigência
+    if (empty($final_vigencia)) {
+        header('Location: ../PHP_PAGES/add.php?status=error&msg=' . urlencode('Final Vigência é obrigatório.'));
+        exit();
+    }
+    $ano_inicio = (int) date('Y', strtotime($inicio_vigencia));
+    $ano_final = (int) date('Y', strtotime($final_vigencia));
+    if ($ano_final < $ano_inicio) {
+        header('Location: ../PHP_PAGES/add.php?status=error&msg=' . urlencode('O ano de Final Vigência não pode ser menor que o ano de Início Vigência.'));
+        exit();
+    }
 
     // 2. Lógica para múltiplos uploads de PDF
     $uploaded_files = [];

@@ -6,8 +6,9 @@
         <input type="date" class="form-control" id="inicio_vigencia" name="inicio_vigencia" value="<?php echo isset($cliente) ? htmlspecialchars($cliente['inicio_vigencia']) : ''; ?>" required>
     </div>
     <div class="col-md-6">
-        <label for="final_vigencia" class="form-label"><i class="bi bi-calendar-check"></i> Final Vigência (Opcional)</label>
-        <input type="date" class="form-control" id="final_vigencia" name="final_vigencia" value="<?php echo isset($cliente) ? htmlspecialchars($cliente['final_vigencia']) : ''; ?>">
+        <label for="final_vigencia" class="form-label"><i class="bi bi-calendar-check"></i> Final Vigência</label>
+        <input type="date" class="form-control" id="final_vigencia" name="final_vigencia" value="<?php echo isset($cliente) ? htmlspecialchars($cliente['final_vigencia']) : ''; ?>" required>
+        <div id="final_vigencia_feedback" class="invalid-feedback">O ano de Final Vigência deve ser maior ou igual ao de Início.</div>
     </div>
 </div>
 <div class="row mb-3">

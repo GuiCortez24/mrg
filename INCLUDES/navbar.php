@@ -1,5 +1,10 @@
 <?php
 // INCLUDES/navbar.php
+
+// Garante que a sessão está ativa para ler as permissões
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top shadow-sm">
     <div class="container-fluid">
@@ -11,22 +16,36 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
-                
+
+                <?php
+                // ===================================================================
+                // INÍCIO DA LÓGICA DE PERMISSÃO PARA O LINK DE BI
+                // ===================================================================
+                // O link só é exibido se a permissão 'pode_ver_bi' for verdadeira.
+                if (isset($_SESSION['pode_ver_bi']) && $_SESSION['pode_ver_bi']):
+                ?>
                 <li class="nav-item">
                     <a class="nav-link" href="relatorio_bi.php"><i class="bi bi-bar-chart-line-fill"></i> BI / Análise</a>
                 </li>
+                <?php
+                endif;
+                // ===================================================================
+                // FIM DA LÓGICA DE PERMISSÃO
+                // ===================================================================
+                ?>
 
                 <li class="nav-item">
                     <a class="nav-link" href="months.php"><i class="bi bi-calendar3-week"></i> Produção Mensal</a>
                 </li>
-                
+
                 <?php
+                // OBS: Este bloco poderia ser substituído por uma nova permissão no futuro,
+                // como por exemplo 'pode_ver_fluxo_caixa', para maior flexibilidade.
                 if (isset($_SESSION['user_email'])) {
                     $user_email = $_SESSION['user_email'];
                     if ($user_email == 'ja@mrgseguros.com.br' || $user_email == 'william@mrgseguros.com.br') {
-                        // Se for um dos e-mails de admin, exibe o link
                         echo '<li class="nav-item">';
-                        echo '    <a class="nav-link" href=""></i> Fluxo de Caixa</a>';
+                        echo '    <a class="nav-link" href="https://fluxocaixa-4ltb4mqdr-cortezs-projects-0fd789f3.vercel.app/"><i class="bi bi-cash-coin"></i> Fluxo de Caixa</a>'; // Ícone adicionado para consistência
                         echo '</li>';
                     }
                 }
@@ -48,7 +67,7 @@
                             <h6 class="mb-0">Notificações</h6>
                         </li>
                         <li><hr class="dropdown-divider my-0"></li>
-                        
+
                         <?php if (isset($notificacoes_result) && $notificacoes_result->num_rows > 0):
                                 $notificacoes_result->data_seek(0);
                                 while ($notificacao = $notificacoes_result->fetch_assoc()): ?>
@@ -66,10 +85,10 @@
                                 </div>
                             </li>
                         <?php endwhile;
-                                else: ?>
+                              else: ?>
                             <li><span class="dropdown-item text-center text-muted py-3">Sem novas notificações</span></li>
                         <?php endif; ?>
-                        
+
                         <?php if (isset($notificacoes_result) && $notificacoes_result->num_rows > 0): ?>
                         <li><hr class="dropdown-divider my-0"></li>
                         <li class="text-center py-2">

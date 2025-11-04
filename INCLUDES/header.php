@@ -6,9 +6,34 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Gera token CSRF se ainda não existir
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../login.php');
     exit();
+}
+
+// Garante que as permissões estejam carregadas na sessão
+if (!isset($_SESSION['pode_ver_bi']) || !isset($_SESSION['pode_ver_comissao_total']) || !isset($_SESSION['pode_ver_comissao_card'])) {
+    require_once __DIR__ . '/../db.php';
+    require_once __DIR__ . '/functions.php';
+    reloadUserPermissions($conn, $_SESSION['user_id']);
+}
+
+// Carrega as notificações do usuário para o navbar
+if (!isset($notificacoes_result)) {
+    // Verifica se a conexão já existe
+    if (!isset($conn)) {
+        require_once __DIR__ . '/../db.php';
+    }
+    $notificacoes_stmt = $conn->prepare("SELECT * FROM notificacoes WHERE usuario_id = ? ORDER BY data_hora DESC LIMIT 10");
+    $notificacoes_stmt->bind_param("i", $_SESSION['user_id']);
+    $notificacoes_stmt->execute();
+    $notificacoes_result = $notificacoes_stmt->get_result();
+    $notificacoes_stmt->close();
 }
 
 $page_title = isset($page_title) ? $page_title : "Sistema de Seguros";
@@ -21,6 +46,7 @@ $page_title = isset($page_title) ? $page_title : "Sistema de Seguros";
     <title><?php echo htmlspecialchars($page_title); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../CSS/floating-button.css">
     
     <style>
         /* Define o tema verde principal do site */

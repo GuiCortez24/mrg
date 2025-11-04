@@ -38,6 +38,7 @@ include '../INCLUDES/header.php';
             <?php endif; ?>
 
             <form method="POST" action="../PHP_ACTION/handle_add.php" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? ''); ?>">
 
                 <?php include '../INCLUDES/form_fields_pessoais.php'; ?>
                 
@@ -154,6 +155,52 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(error => console.error('Erro ao verificar proposta:', error));
             }
         });
+    }
+
+    // Validação de Final Vigência obrigatório e ano >= Início Vigência
+    const formEl = document.querySelector('form');
+    const inicioVigenciaEl = document.getElementById('inicio_vigencia');
+    const finalVigenciaEl = document.getElementById('final_vigencia');
+    const finalFeedbackEl = document.getElementById('final_vigencia_feedback');
+
+    function clearVigenciaValidation() {
+        inicioVigenciaEl.classList.remove('is-invalid');
+        finalVigenciaEl.classList.remove('is-invalid');
+        if (finalFeedbackEl) finalFeedbackEl.textContent = 'O ano de Final Vigência deve ser maior ou igual ao de Início.';
+    }
+
+    function validateVigencia() {
+        clearVigenciaValidation();
+        const inicioVal = inicioVigenciaEl.value;
+        const finalVal = finalVigenciaEl.value;
+
+        if (!finalVal) {
+            if (finalFeedbackEl) finalFeedbackEl.textContent = 'Final Vigência é obrigatório.';
+            finalVigenciaEl.classList.add('is-invalid');
+            return false;
+        }
+        if (inicioVal) {
+            const anoInicio = new Date(inicioVal).getFullYear();
+            const anoFinal = new Date(finalVal).getFullYear();
+            if (anoFinal < anoInicio) {
+                if (finalFeedbackEl) finalFeedbackEl.textContent = 'O ano de Final Vigência não pode ser menor que o ano de Início Vigência.';
+                finalVigenciaEl.classList.add('is-invalid');
+                inicioVigenciaEl.classList.add('is-invalid');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (formEl && inicioVigenciaEl && finalVigenciaEl) {
+        formEl.addEventListener('submit', function (e) {
+            if (!validateVigencia()) {
+                e.preventDefault();
+                alert('Verifique as datas: Final Vigência é obrigatório e não pode ter ano menor que o Início.');
+            }
+        });
+        finalVigenciaEl.addEventListener('change', validateVigencia);
+        inicioVigenciaEl.addEventListener('change', validateVigencia);
     }
 });
 </script>

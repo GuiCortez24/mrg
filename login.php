@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $senha = $_POST['senha'];
 
-    // AJUSTE 1: Adicionado 'email' na consulta SQL para que possamos salvá-lo na sessão
-    $stmt = $conn->prepare("SELECT id, nome, email, senha FROM usuarios WHERE email = ?");
+    // AJUSTE 1: Adicionado 'email' e permissões na consulta SQL para que possamos salvá-los na sessão
+    $stmt = $conn->prepare("SELECT id, nome, email, senha, pode_ver_bi, pode_ver_comissao_total, pode_ver_comissao_card FROM usuarios WHERE email = ?");
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -37,6 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // AJUSTE 2: Salvo o email do usuário na sessão para verificação de permissões
             $_SESSION['user_email'] = $usuario['email'];
+            
+            // AJUSTE 3: Carrega as permissões do usuário na sessão
+            $_SESSION['pode_ver_bi'] = (bool)$usuario['pode_ver_bi'];
+            $_SESSION['pode_ver_comissao_total'] = (bool)$usuario['pode_ver_comissao_total'];
+            $_SESSION['pode_ver_comissao_card'] = (bool)$usuario['pode_ver_comissao_card'];
 
             header('Location: index.php');
             exit();

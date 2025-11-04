@@ -1,8 +1,9 @@
 <?php
-$host = 'localhost'; // ou o seu host
-$user = 'root';      // ou o seu usuário
-$pass = '';          // ou a sua senha
-$db = 'mrg';  // o nome do seu banco
+// Permite configuração via variáveis de ambiente
+$host = getenv('DB_HOST') ?: 'localhost';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS') ?: '';
+$db   = getenv('DB_NAME') ?: 'mrg';
 
 $conn = new mysqli($host, $user, $pass, $db);
 
